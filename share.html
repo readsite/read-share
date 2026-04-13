@@ -2,27 +2,101 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Read. 分享</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; color: #333; }
-        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .music-cover { width: 100%; border-radius: 16px; margin-bottom: 16px; }
-        .sentence-text { font-size: 18px; line-height: 1.6; font-style: italic; }
-        .article-title { font-size: 22px; font-weight: bold; margin-bottom: 8px; }
-        .article-author { color: #666; margin-bottom: 16px; }
-        .article-content { line-height: 1.8; }
-        .loading { text-align: center; padding: 40px; color: #999; }
-        .error { text-align: center; padding: 40px; color: #f44336; }
-        img { max-width: 100%; height: auto; }
-        hr { margin: 20px 0; border: 0; border-top: 1px solid #eee; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            color: #1f2d3d;
+        }
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+        .music-cover {
+            width: 100%;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+        }
+        .song-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .song-artist {
+            font-size: 16px;
+            color: #6c7a8e;
+            margin-bottom: 20px;
+        }
+        .play-btn {
+            background: #1f2d3d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .play-btn:active { opacity: 0.7; }
+        .sentence-text {
+            font-size: 18px;
+            line-height: 1.6;
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+        .sentence-author {
+            text-align: right;
+            color: #6c7a8e;
+            font-size: 14px;
+        }
+        .article-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .article-author {
+            color: #6c7a8e;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        .article-img {
+            width: 100%;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+        .article-content {
+            line-height: 1.7;
+            font-size: 15px;
+        }
+        .loading, .error {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c7a8e;
+        }
+        .error { color: #e5484d; }
+        hr { margin: 16px 0; border: 0; border-top: 1px solid #e9ecef; }
+        audio { width: 100%; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <div id="app"></div>
+    <div id="app" class="loading">加载中...</div>
+
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const date = urlParams.get('date');
+        const type = urlParams.get('type'); // 'music', 'sentence', 'article'
         const API_BASE = 'https://solitudenook.top';
 
         async function loadShareContent() {
@@ -31,13 +105,17 @@
                 app.innerHTML = '<div class="error">缺少日期参数</div>';
                 return;
             }
-            app.innerHTML = '<div class="loading">加载中...</div>';
+
             try {
-                const res = await fetch(`${API_BASE}/api/posts/${date}`);
+                const res = await fetch(`${API_BASE}/api/posts/${date}`, {
+                    cache: 'no-store',
+                    headers: { 'Accept': 'application/json' }
+                });
                 if (!res.ok) throw new Error('内容不存在');
                 const data = await res.json();
                 renderContent(data);
             } catch (err) {
+                console.error(err);
                 app.innerHTML = `<div class="error">加载失败，请稍后重试<br>${err.message}</div>`;
             }
         }
@@ -45,34 +123,87 @@
         function renderContent(data) {
             const app = document.getElementById('app');
             let html = '';
-            // 音乐卡片
-            if (data.music && data.music.title) {
-                html += `<div class="card">
-                    <h3>🎵 音乐推荐</h3>
-                    ${data.music.cover ? `<img class="music-cover" src="${data.music.cover}" onerror="this.style.display='none'">` : ''}
-                    <div><strong>${escapeHtml(data.music.title)}</strong><br>${escapeHtml(data.music.artist || '')}</div>
-                </div>`;
+
+            // 如果指定了 type，只渲染该类型
+            if (type && type === 'music' && data.music && data.music.title) {
+                html = renderMusicCard(data.music);
+            } else if (type && type === 'sentence' && data.sentence && data.sentence.text) {
+                html = renderSentenceCard(data.sentence);
+            } else if (type && type === 'article' && data.article && data.article.title) {
+                html = renderArticleCard(data.article);
+            } 
+            // 未指定 type 或指定类型不存在时，按原来的全部展示（兼容旧分享）
+            else {
+                if (data.music && data.music.title) html += renderMusicCard(data.music);
+                if (data.sentence && data.sentence.text) html += renderSentenceCard(data.sentence);
+                if (data.article && data.article.title) html += renderArticleCard(data.article);
+                if (!html) html = '<div class="error">暂无内容</div>';
             }
-            // 句子卡片
-            if (data.sentence && data.sentence.text) {
-                html += `<div class="card">
-                    <h3>📝 句子摘录</h3>
-                    <div class="sentence-text">“${escapeHtml(data.sentence.text).replace(/\n/g, '<br>')}”</div>
-                    ${data.sentence.author ? `<div style="margin-top:12px; text-align:right">—— ${escapeHtml(data.sentence.author)}</div>` : ''}
-                </div>`;
-            }
-            // 文章卡片
-            if (data.article && data.article.title) {
-                html += `<div class="card">
-                    <h3>📖 文章</h3>
-                    <div class="article-title">${escapeHtml(data.article.title)}</div>
-                    <div class="article-author">文/${escapeHtml(data.article.author || '佚名')}</div>
-                    ${data.article.image ? `<img src="${data.article.image}" style="max-width:100%; border-radius:12px; margin-bottom:16px;">` : ''}
-                    <div class="article-content">${escapeHtml(data.article.content).replace(/\n/g, '<br>')}</div>
-                </div>`;
-            }
-            if (!html) html = '<div class="error">暂无内容</div>';
+
             app.innerHTML = html;
+            // 绑定音乐播放器（如果存在）
+            attachAudioPlayer(data.music);
+        }
+
+        function renderMusicCard(music) {
+            const coverHtml = music.cover ? `<img class="music-cover" src="${music.cover}" onerror="this.style.display='none'">` : '';
+            return `
+                <div class="card" id="music-card">
+                    ${coverHtml}
+                    <div class="song-title">${escapeHtml(music.title)}</div>
+                    <div class="song-artist">${escapeHtml(music.artist || '未知歌手')}</div>
+                    <button class="play-btn" id="playMusicBtn">▶ 试听</button>
+                    <audio id="shareAudio" style="display:none" preload="none">
+                        <source src="${music.src || ''}" type="audio/mpeg">
+                    </audio>
+                </div>
+            `;
+        }
+
+        function renderSentenceCard(sentence) {
+            return `
+                <div class="card">
+                    <div class="sentence-text">“${escapeHtml(sentence.text).replace(/\n/g, '<br>')}”</div>
+                    ${sentence.author ? `<div class="sentence-author">—— ${escapeHtml(sentence.author)}</div>` : ''}
+                </div>
+            `;
+        }
+
+        function renderArticleCard(article) {
+            const imgHtml = article.image ? `<img class="article-img" src="${article.image}" onerror="this.style.display='none'">` : '';
+            return `
+                <div class="card">
+                    <div class="article-title">${escapeHtml(article.title)}</div>
+                    <div class="article-author">文/${escapeHtml(article.author || '佚名')}</div>
+                    ${imgHtml}
+                    <div class="article-content">${escapeHtml(article.content).replace(/\n/g, '<br>')}</div>
+                </div>
+            `;
+        }
+
+        function attachAudioPlayer(music) {
+            if (!music || !music.src) return;
+            const audio = document.getElementById('shareAudio');
+            const playBtn = document.getElementById('playMusicBtn');
+            if (!audio || !playBtn) return;
+
+            // 微信内必须用户主动点击才能播放，所以使用按钮触发
+            playBtn.addEventListener('click', () => {
+                if (audio.paused) {
+                    audio.play().catch(err => {
+                        console.warn('播放失败', err);
+                        playBtn.textContent = '⚠️ 无法播放，请检查网络';
+                        setTimeout(() => { playBtn.textContent = '▶ 试听'; }, 2000);
+                    });
+                    playBtn.textContent = '⏸ 暂停';
+                } else {
+                    audio.pause();
+                    playBtn.textContent = '▶ 试听';
+                }
+            });
+            audio.addEventListener('ended', () => {
+                playBtn.textContent = '▶ 试听';
+            });
         }
 
         function escapeHtml(str) {
@@ -82,8 +213,6 @@
                 if (m === '<') return '&lt;';
                 if (m === '>') return '&gt;';
                 return m;
-            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-                return c;
             });
         }
 
