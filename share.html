@@ -194,6 +194,8 @@
             font-size: 2.25rem;
             line-height: 1;
             color: var(--gray-6);
+            transition: none;
+            animation: none !important;
         }
         .track-album {
             font-size: 1.20rem;
@@ -292,7 +294,7 @@
             color: var(--gray-5);
         }
 
-        /* ========== APP 下载页脚 (无圆角，完全平直) ========== */
+        /* ========== APP 下载页脚 (无圆角，无旋转动画) ========== */
         .app-download-bar {
             margin-top: 1.5rem;
             background: var(--white);
@@ -322,6 +324,9 @@
             justify-content: center;
             color: white;
             font-size: 1.3rem;
+        }
+        .app-icon i {
+            animation: none !important;
         }
         .app-text h4 {
             font-size: 1rem;
@@ -358,7 +363,7 @@
             }
         }
 
-        /* loading & error 状态 */
+        /* loading & error 状态 (确保没有任何图标继承旋转动画) */
         .loading-state, .error-state {
             text-align: center;
             padding: 3rem 1.5rem;
@@ -373,6 +378,10 @@
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
+        }
+        /* 确保所有普通图标不会意外旋转 */
+        i:not(.loading-state i) {
+            animation: none !important;
         }
     </style>
 </head>
@@ -393,7 +402,6 @@
         let currentAudio = null;
         let currentProgressFill = null;
         let currentPlayBtn = null;
-        let isPlayingFlag = false;
 
         function escapeHtml(str) {
             if (!str) return '';
@@ -413,7 +421,6 @@
                 ? `<img src="${escapeHtml(coverUrl)}" alt="cover" onerror="this.src='';">` 
                 : '<div style="width:100%;height:100%;background:var(--gray-2);border-radius:50%;"></div>';
             const musicSrc = music.src || '';
-            // 嵌入 data-music-src 供 JS 绑定播放器
             return `
                 <div class="card" id="music-share-card" data-type="music">
                     <div class="card-inner">
@@ -479,7 +486,6 @@
             audio.addEventListener('ended', () => {
                 playPauseBtn.classList.remove('play');
                 playPauseBtn.classList.add('pause');
-                isPlayingFlag = false;
                 progressFill.style.width = '0%';
                 audio.currentTime = 0;
             });
@@ -494,12 +500,10 @@
                     });
                     playPauseBtn.classList.remove('pause');
                     playPauseBtn.classList.add('play');
-                    isPlayingFlag = true;
                 } else {
                     audio.pause();
                     playPauseBtn.classList.remove('play');
                     playPauseBtn.classList.add('pause');
-                    isPlayingFlag = false;
                 }
             };
             playPauseBtn.removeEventListener('click', togglePlay);
@@ -650,7 +654,6 @@
             if (downloadBtn) {
                 downloadBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    // 可替换为实际下载地址
                     window.location.href = 'https://solitudenook.top';
                 });
             }
