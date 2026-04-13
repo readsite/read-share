@@ -6,7 +6,7 @@
     <title>Read. 分享 · 安于闲，乐于独</title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
     <style>
-        /* ========== 全局重置 + 色彩变量（与主站完全一致）========== */
+        /* ========== 完全复刻 index.html 的全局样式 ========== */
         * {
             margin: 0;
             padding: 0;
@@ -60,14 +60,14 @@
             font-display: swap;
         }
 
-        /* 隐藏滚动条（与主站一致） */
+        /* 隐藏滚动条 */
         ::-webkit-scrollbar {
             width: 0;
             height: 0;
             display: none;
         }
 
-        /* ========== 卡片容器（弹性布局，页脚自动沉底）========== */
+        /* ========== 卡片容器（弹性列，页脚自动沉底） ========== */
         .card-container {
             display: flex;
             flex-direction: column;
@@ -76,54 +76,37 @@
             background-color: var(--white);
         }
 
-        /* 卡片通用样式（无圆角） */
+        /* 卡片通用样式（无圆角，左对齐） */
         .card {
             background-color: var(--white);
             width: 100%;
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 1.25rem;
             box-sizing: border-box;
             border-radius: 0 !important;
+            text-align: left; /* 强制卡片内所有文本左对齐（除特殊覆盖） */
         }
 
-        /* 音乐卡片默认样式（后续通过类实现垂直居中） */
-        .music-card-wrapper {
-            flex: 0 0 auto;
-        }
-        /* 当只有音乐卡片时，让其垂直居中 */
-        .card-container:has(.music-card-only) .music-card-wrapper {
-            flex: 1;
-            display: flex;
-            align-items: center;
-        }
-        .card-container:has(.music-card-only) .music-card-wrapper .card {
-            width: 100%;
-        }
-
-        /* 句子卡片 / 文章卡片：顶间距 */
+        /* 句子和文章卡片的外层包装，增加顶部间距 */
         .sentence-card-wrapper,
         .article-card-wrapper {
             margin-top: 1.5rem;
         }
-        /* 第一个卡片如果是句子或文章，也保持顶间距（不加额外首项特殊处理） */
 
-        /* 底部页脚：正常文档流，无圆角 */
-        .app-download-bar {
-            margin-top: 2rem;
-            background: var(--white);
-            border-top: 1px solid var(--gray-0);
-            border-bottom: 1px solid var(--gray-0);
-            padding: 0.9rem 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            width: 100%;
-            border-radius: 0 !important;
-            flex-shrink: 0;
+        /* 音乐卡片包装器（默认无特殊行为） */
+        .music-card-wrapper {
+            flex: 0 0 auto;
         }
 
-        /* ---------- 音乐卡片内部（完全复刻 index） ---------- */
+        /* 当且仅当页面只有音乐卡片时，让音乐卡片垂直居中 */
+        .card-container.music-card-only {
+            justify-content: center;
+        }
+        .card-container.music-card-only .music-card-wrapper {
+            flex: 0 0 auto;
+            width: 100%;
+        }
+
+        /* ---------- 音乐卡片内部（与 index.html 完全一致，文本左对齐） ---------- */
         #album-box {
             margin-bottom: 1.25rem;
             display: flex;
@@ -196,6 +179,7 @@
             pointer-events: none;
             flex: 1;
             min-width: 0;
+            text-align: left; /* 强制左对齐 */
         }
         .play-pause-icon {
             pointer-events: auto;
@@ -234,7 +218,7 @@
         .play-pause-icon i.play-icon,
         .play-pause-icon i.pause-icon { display: none; }
 
-        /* ---------- 句子卡片 ---------- */
+        /* ---------- 句子卡片（文本左对齐，来源右对齐） ---------- */
         .sentence-image {
             width: 100%;
             margin-bottom: 1.25rem;
@@ -258,9 +242,10 @@
             line-height: 1.8;
             font-size: 1rem;
             color: var(--gray-6);
+            text-align: left; /* 左对齐 */
         }
         .from {
-            text-align: right;
+            text-align: right; /* 来源右对齐 */
             margin-top: 0.625rem;
         }
         .from span {
@@ -268,7 +253,7 @@
             color: var(--gray-4);
         }
 
-        /* ---------- 文章卡片 ---------- */
+        /* ---------- 文章卡片（标题/作者/正文左对齐） ---------- */
         .bg-img {
             width: 100%;
             margin-bottom: 1.5rem;
@@ -289,6 +274,7 @@
         }
         .article-info {
             padding-bottom: 0.5rem;
+            text-align: left; /* 左对齐 */
         }
         .title {
             font-size: 1.5rem;
@@ -304,15 +290,31 @@
             line-height: 1.4;
             font-size: 1.05rem;
             font-weight: 500;
-            text-align: justify;
+            text-align: justify; /* 正文两端对齐，符合阅读习惯 */
             color: var(--gray-5);
         }
 
-        /* 下载页脚内部样式 */
+        /* ---------- 底部下载页脚（无圆角，不遮挡） ---------- */
+        .app-download-bar {
+            margin-top: 2rem;
+            background: var(--white);
+            border-top: 1px solid var(--gray-0);
+            border-bottom: 1px solid var(--gray-0);
+            padding: 0.9rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            width: 100%;
+            border-radius: 0 !important;
+            flex-shrink: 0;
+        }
         .download-info {
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            text-align: left;
         }
         .app-icon {
             width: 2.5rem;
@@ -407,7 +409,7 @@
             });
         }
 
-        // 音乐卡片 HTML（外层带 wrapper，便于垂直居中控制）
+        // 音乐卡片
         function renderMusicCard(music) {
             if (!music || !music.title) return '';
             const coverUrl = music.cover?.trim() || '';
@@ -563,10 +565,10 @@
             });
         }
 
-        // 核心渲染：将卡片放入 .card-container，并动态标记是否只有音乐卡片
         function renderPageContent(data) {
             let cardsHtml = '';
             let hasMusic = false, hasSentence = false, hasArticle = false;
+
             if (type === 'music' && data.music?.title) {
                 cardsHtml = renderMusicCard(data.music);
                 hasMusic = true;
@@ -582,6 +584,7 @@
                 if (data.article?.title) { cardsHtml += renderArticleCard(data.article); hasArticle = true; }
                 if (!cardsHtml) cardsHtml = '<div class="error-state">暂无任何内容可分享</div>';
             }
+
             const onlyMusic = hasMusic && !hasSentence && !hasArticle;
             const containerClass = onlyMusic ? 'card-container music-card-only' : 'card-container';
             const downloadBar = `
