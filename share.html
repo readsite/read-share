@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Read. 分享</title>
-    <!-- Remix Icon CDN (与主站图标库一致) -->
+    <!-- Remix Icon 库 (与主站完全一致) -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
     <style>
-        /* ========== 基础变量 + 重置 (与index完全一致，圆角归零) ========== */
+        /* ========== 色彩变量 + 重置 (与 index 完全一致，圆角归零) ========== */
         :root {
             --white: #ffffff;
             --black: #000000;
@@ -24,7 +24,7 @@
             --album-ring-light: rgba(255,255,255,0.05);
         }
 
-        /* 暗色主题跟随系统 (可选, 保持和主站一致) */
+        /* 暗色主题跟随系统 (与主站夜间模式视觉一致) */
         @media (prefers-color-scheme: dark) {
             :root {
                 --white: #1e1e1e;
@@ -56,17 +56,17 @@
             min-height: 100vh;
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
-            padding: 0 0 20px 0;
+            padding: 0 0 24px 0;
         }
 
-        /* 方正宋体优先，降级系统字体 */
+        /* 方正宋体 (与主站相同) */
         @font-face {
             font-family: 'fangzhengsongti';
             src: url('https://solitudenook.top/font/fangzhengsongti.ttf') format('truetype');
             font-display: swap;
         }
 
-        /* 卡片容器 ———— 与index完全一致，无圆角 */
+        /* ========== 卡片样式：无圆角，内边距与主站完全一致 ========== */
         .card {
             display: flex;
             flex-direction: column;
@@ -75,32 +75,33 @@
             width: 100%;
             padding: 0.5rem 1.25rem;
             box-sizing: border-box;
-            border-radius: 0 !important;   /* 强制无圆角 */
-            margin-bottom: 1rem;
+            border-radius: 0 !important;   /* 无圆角，严格遵循要求 */
+            margin-bottom: 1.5rem;
         }
-
+        .card:last-child {
+            margin-bottom: 0;
+        }
         .card-inner {
             flex: 1;
             min-height: 0;
             display: flex;
             flex-direction: column;
-            overflow-y: visible;
             background-color: var(--white);
         }
 
-        /* 共用滚动条 (隐藏) */
+        /* 隐藏滚动条 (与主站一致) */
         ::-webkit-scrollbar {
             width: 0;
             height: 0;
             display: none;
         }
 
-        /* ========== 音乐卡片样式 (完全遵循 index 唱片风格) ========== */
+        /* ---------- 音乐卡片 (唱片居中，布局与 index 音乐卡片完全一致) ---------- */
         #album-box {
             margin-bottom: 1.25rem;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: center;   /* 水平居中 */
         }
         .album-image {
             position: relative;
@@ -109,12 +110,19 @@
             border-radius: 50%;
             overflow: visible;
             background: transparent;
-            /* 保留唱片纹阴影圈，无圆角影响 (圆形本身就圆，但无卡片圆角) */
+            /* 多层唱片纹阴影 (与 index 完全一致) */
             box-shadow: 0 0 0 0.25rem var(--album-ring), 0 0 0 0.3125rem var(--album-ring-light),
                         0 0 0 0.5rem var(--album-ring), 0 0 0 0.5625rem var(--album-ring-light),
                         0 0 0 0.75rem var(--album-ring), 0 0 0 0.8125rem var(--album-ring-light),
                         0 0 0 1rem var(--album-ring), 0 0 0 1.0625rem var(--album-ring-light),
-                        0 0 0 1.25rem var(--album-ring), 0 0 0 1.3125rem var(--album-ring-light);
+                        0 0 0 1.25rem var(--album-ring), 0 0 0 1.3125rem var(--album-ring-light),
+                        0 0 0 1.5rem var(--album-ring), 0 0 0 1.5625rem var(--album-ring-light),
+                        0 0 0 1.75rem var(--album-ring), 0 0 0 1.8125rem var(--album-ring-light),
+                        0 0 0 2rem var(--album-ring), 0 0 0 2.0625rem var(--album-ring-light),
+                        0 0 0 2.25rem var(--album-ring), 0 0 0 2.3125rem var(--album-ring-light),
+                        0 0 0 2.5rem var(--album-ring), 0 0 0 2.5625rem var(--album-ring-light),
+                        0 0 0 2.8125rem var(--album-ring), 0 0 0 2.875rem var(--album-ring-light),
+                        0 0 0 2.90625rem var(--album-ring);
         }
         .album-image img {
             width: 100%;
@@ -124,11 +132,12 @@
             position: relative;
             z-index: 1;
         }
-        .player-info-share {
+        /* 播放控件区域 (仿 index 的 .player-control-wrapper 布局风格，无进度条) */
+        .player-control-share {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 0.75rem;
+            margin-top: 0.5rem;
             gap: 1rem;
         }
         .track-info-share {
@@ -168,7 +177,7 @@
         .play-pause-icon i.play-icon,
         .play-pause-icon i.pause-icon { display: none; }
 
-        /* ========== 句子卡片 (与index #sentence 一致) ========== */
+        /* ---------- 句子卡片 (与 index 中 #sentence 完全一致) ---------- */
         .sentence-image {
             width: 100%;
             margin-bottom: 1.25rem;
@@ -202,7 +211,7 @@
             color: var(--gray-4);
         }
 
-        /* ========== 文章卡片 (与index #article 一致) ========== */
+        /* ---------- 文章卡片 (与 index 中 #article 完全一致) ---------- */
         .bg-img {
             width: 100%;
             margin-bottom: 1.5rem;
@@ -242,15 +251,10 @@
             color: var(--gray-5);
         }
 
-        /* 通用内容区域 */
-        .card .card-inner > * {
-            max-width: 100%;
-        }
-
-        /* 底部下载导航栏 (与主站footer风格统一) */
+        /* ---------- 底部 App 下载导航栏 (与主站 footer 风格统一) ---------- */
         .app-download-bar {
             margin-top: 2rem;
-            margin-bottom: 0;
+            margin-bottom: 0.5rem;
             background: var(--white);
             border-top: 1px solid var(--gray-0);
             border-bottom: 1px solid var(--gray-0);
@@ -302,7 +306,6 @@
         .download-btn:active {
             opacity: 0.7;
         }
-        /* 深色适配 */
         @media (prefers-color-scheme: dark) {
             .download-btn {
                 background: var(--gray-5);
@@ -314,7 +317,7 @@
             }
         }
 
-        /* loading & error 保持原生风格 */
+        /* loading & error 状态样式 */
         .loading-state, .error-state {
             text-align: center;
             padding: 3rem 1.5rem;
@@ -329,13 +332,6 @@
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
-        }
-
-        /* 其他辅助 */
-        hr {
-            margin: 0 1.25rem;
-            border: 0;
-            border-top: 1px solid var(--gray-1);
         }
     </style>
 </head>
@@ -352,11 +348,11 @@
         const type = urlParams.get('type'); // 'music', 'sentence', 'article'
         const API_BASE = 'https://solitudenook.top';
 
-        // 全局audio实例 (音乐专用)
+        // 全局音频控制
         let currentAudio = null;
-        let currentPlayBtn = null;
+        let currentPlayBtnElement = null;
 
-        // 转义HTML
+        // 转义HTML (防XSS)
         function escapeHtml(str) {
             if (!str) return '';
             return str.replace(/[&<>]/g, function(m) {
@@ -367,11 +363,14 @@
             });
         }
 
-        // 渲染音乐卡片 (完全按照 index 布局: 圆形封面 + 歌名歌手 + 播放/暂停图标)
+        // ========== 音乐卡片渲染 (与 index 结构完全一致：居中唱片 + 歌曲信息 + 播放按钮) ==========
         function renderMusicCard(music) {
             if (!music || !music.title) return '';
             const coverUrl = music.cover && music.cover.trim() !== '' ? music.cover : '';
-            const coverHtml = coverUrl ? `<img src="${escapeHtml(coverUrl)}" alt="cover" onerror="this.src='';">` : '<div style="width:100%;height:100%;background:var(--gray-2);border-radius:50%;"></div>';
+            const coverHtml = coverUrl 
+                ? `<img src="${escapeHtml(coverUrl)}" alt="cover" onerror="this.src='';">` 
+                : '<div style="width:100%;height:100%;background:var(--gray-2);border-radius:50%;"></div>';
+            // 注意 data-music-src 存储音频链接
             return `
                 <div class="card" id="music-share-card" data-type="music">
                     <div class="card-inner">
@@ -380,7 +379,7 @@
                                 ${coverHtml}
                             </div>
                         </div>
-                        <div class="player-info-share">
+                        <div class="player-control-share">
                             <div class="track-info-share">
                                 <div class="track-album-share">${escapeHtml(music.title)}</div>
                                 <div class="track-singer-share">${escapeHtml(music.artist || '未知歌手')}</div>
@@ -395,10 +394,12 @@
             `;
         }
 
-        // 渲染句子卡片 (完全仿 index: 图片容器 + 句子 + from)
+        // ========== 句子卡片渲染 (与 index #sentence 完全一致：图片 + 文字 + 来源) ==========
         function renderSentenceCard(sentence) {
             if (!sentence || !sentence.text) return '';
-            const imgHtml = sentence.image ? `<div class="sentence-image"><img src="${escapeHtml(sentence.image)}" alt="句子配图" onerror="this.style.display='none';this.parentElement.style.display='none'"></div>` : '';
+            const imgHtml = sentence.image 
+                ? `<div class="sentence-image"><img src="${escapeHtml(sentence.image)}" alt="句子配图" onerror="this.style.display='none';this.parentElement.style.display='none'"></div>` 
+                : '';
             return `
                 <div class="card" data-type="sentence">
                     <div class="card-inner">
@@ -410,10 +411,12 @@
             `;
         }
 
-        // 渲染文章卡片 (完全仿 index: 配图 + 标题 + 作者 + 内容)
+        // ========== 文章卡片渲染 (与 index #article 完全一致：配图 + 标题 + 作者 + 正文段落) ==========
         function renderArticleCard(article) {
             if (!article || !article.title) return '';
-            const imgHtml = article.image ? `<div class="bg-img"><img src="${escapeHtml(article.image)}" alt="文章配图" onerror="this.style.display='none';this.parentElement.style.display='none'"></div>` : '';
+            const imgHtml = article.image 
+                ? `<div class="bg-img"><img src="${escapeHtml(article.image)}" alt="文章配图" onerror="this.style.display='none';this.parentElement.style.display='none'"></div>` 
+                : '';
             return `
                 <div class="card" data-type="article">
                     <div class="card-inner">
@@ -428,7 +431,7 @@
             `;
         }
 
-        // 绑定音乐播放器 (使用卡片内的播放按钮，实现类似index的播放/暂停切换)
+        // 绑定音乐播放器 (实现播放/暂停切换，图标状态与主站一致)
         function bindMusicPlayer() {
             const musicCard = document.querySelector('#music-share-card');
             if (!musicCard) return;
@@ -437,7 +440,7 @@
             const audioSrc = playPauseDiv.getAttribute('data-music-src');
             if (!audioSrc) return;
 
-            // 如果已有全局audio且未销毁，先暂停移除事件
+            // 清理旧音频实例
             if (currentAudio) {
                 currentAudio.pause();
                 currentAudio = null;
@@ -446,7 +449,6 @@
             audio.preload = 'none';
             currentAudio = audio;
 
-            // 更新按钮状态
             function updateButtonUI(isPlaying) {
                 if (isPlaying) {
                     playPauseDiv.classList.remove('pause');
@@ -457,7 +459,6 @@
                 }
             }
 
-            // 播放结束重置
             audio.addEventListener('ended', () => {
                 updateButtonUI(false);
             });
@@ -466,7 +467,6 @@
             const clickHandler = (e) => {
                 e.stopPropagation();
                 if (audio.paused) {
-                    // 微信/移动端需要用户手势，这里按钮点击已经触发
                     audio.play().catch(err => {
                         console.warn('播放失败', err);
                         // 简单提示
@@ -491,11 +491,48 @@
                     updateButtonUI(false);
                 }
             };
+            // 移除旧监听避免重复
             playPauseDiv.removeEventListener('click', clickHandler);
             playPauseDiv.addEventListener('click', clickHandler);
         }
 
-        // 主流程：获取数据并渲染，追加底部下载栏
+        // 图片点击预览 (增强体验，但不影响布局一致性)
+        function attachImagePreview() {
+            const images = document.querySelectorAll('.album-image img, .sentence-image img, .bg-img img');
+            images.forEach(img => {
+                if (!img.getAttribute('data-preview')) {
+                    img.setAttribute('data-preview', 'true');
+                    img.style.cursor = 'pointer';
+                    img.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const src = img.getAttribute('src');
+                        if (!src) return;
+                        const overlay = document.createElement('div');
+                        overlay.style.position = 'fixed';
+                        overlay.style.top = '0';
+                        overlay.style.left = '0';
+                        overlay.style.width = '100%';
+                        overlay.style.height = '100%';
+                        overlay.style.background = 'rgba(0,0,0,0.9)';
+                        overlay.style.zIndex = '10000';
+                        overlay.style.display = 'flex';
+                        overlay.style.alignItems = 'center';
+                        overlay.style.justifyContent = 'center';
+                        overlay.style.cursor = 'pointer';
+                        const previewImg = document.createElement('img');
+                        previewImg.src = src;
+                        previewImg.style.maxWidth = '90%';
+                        previewImg.style.maxHeight = '80%';
+                        previewImg.style.objectFit = 'contain';
+                        overlay.appendChild(previewImg);
+                        overlay.addEventListener('click', () => overlay.remove());
+                        document.body.appendChild(overlay);
+                    });
+                }
+            });
+        }
+
+        // 主渲染逻辑
         async function loadShareContent() {
             const app = document.getElementById('app');
             if (!date) {
@@ -510,18 +547,17 @@
                 });
                 if (!res.ok) throw new Error('内容不存在或网络错误');
                 const data = await res.json();
-                renderPage(data);
+                renderPageContent(data);
             } catch (err) {
                 console.error(err);
-                app.innerHTML = `<div class="error-state">加载失败，请稍后重试<br>${err.message}</div>`;
+                app.innerHTML = `<div class="error-state">加载失败，请稍后重试<br>${escapeHtml(err.message)}</div>`;
             }
         }
 
-        function renderPage(data) {
-            const app = document.getElementById('app');
+        function renderPageContent(data) {
             let htmlContent = '';
 
-            // 根据type参数决定展示单卡片还是全部卡片（兼容旧分享）
+            // 根据 type 参数展示单一类型卡片，否则展示全部 (兼容旧分享链接)
             if (type && type === 'music' && data.music && data.music.title) {
                 htmlContent = renderMusicCard(data.music);
             } else if (type && type === 'sentence' && data.sentence && data.sentence.text) {
@@ -536,7 +572,7 @@
                 if (!htmlContent) htmlContent = '<div class="error-state">暂无任何内容可分享</div>';
             }
 
-            // 底部下载导航栏 (与主站风格融合)
+            // 底部 APP 下载导航栏 (样式与主站协调)
             const downloadBar = `
                 <div class="app-download-bar">
                     <div class="download-info">
@@ -550,64 +586,27 @@
                 </div>
             `;
 
-            // 注入内容 + 底部栏
+            // 注入内容 + 底部导航栏
+            const app = document.getElementById('app');
             app.innerHTML = htmlContent + downloadBar;
 
-            // 如果存在音乐卡片，绑定播放控制
+            // 绑定音乐播放
             if (document.querySelector('#music-share-card')) {
                 bindMusicPlayer();
             }
 
-            // 绑定下载按钮事件 (提供模拟跳转，可替换为真实下载地址)
+            // 绑定下载按钮事件 (跳转至官网或下载页面，可自定义)
             const downloadBtn = document.getElementById('appDownloadBtn');
             if (downloadBtn) {
                 downloadBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    // 真实场景可替换为官方下载链接，此处提供友好提示并跳转 (示意)
-                    // 根据需求可以改成 alert 或跳转到下载页面
-                    // 演示：跳转至项目主页或下载地址
-                    window.location.href = 'https://solitudenook.top';  // 替换为真实下载地址
-                    // 备选：也可展示toast引导
-                    // 但为满足“APP下载导航栏”要求，直接跳转下载页
+                    // 实际项目可替换为真实下载链接
+                    window.location.href = 'https://solitudenook.top';
                 });
             }
 
-            // 额外处理图片点击预览 (可选，提升体验，但不影响主要要求)
+            // 图片预览功能（完全不影响布局，提升细节）
             attachImagePreview();
-        }
-
-        // 辅助: 图片点击预览 (模仿主站轻交互)
-        function attachImagePreview() {
-            const images = document.querySelectorAll('.album-image img, .sentence-image img, .bg-img img');
-            images.forEach(img => {
-                img.style.cursor = 'pointer';
-                img.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const src = img.getAttribute('src');
-                    if (!src) return;
-                    // 简单预览弹窗
-                    const overlay = document.createElement('div');
-                    overlay.style.position = 'fixed';
-                    overlay.style.top = '0';
-                    overlay.style.left = '0';
-                    overlay.style.width = '100%';
-                    overlay.style.height = '100%';
-                    overlay.style.background = 'rgba(0,0,0,0.9)';
-                    overlay.style.zIndex = '10000';
-                    overlay.style.display = 'flex';
-                    overlay.style.alignItems = 'center';
-                    overlay.style.justifyContent = 'center';
-                    overlay.style.cursor = 'pointer';
-                    const previewImg = document.createElement('img');
-                    previewImg.src = src;
-                    previewImg.style.maxWidth = '90%';
-                    previewImg.style.maxHeight = '80%';
-                    previewImg.style.objectFit = 'contain';
-                    overlay.appendChild(previewImg);
-                    overlay.addEventListener('click', () => overlay.remove());
-                    document.body.appendChild(overlay);
-                });
-            });
         }
 
         // 启动加载
