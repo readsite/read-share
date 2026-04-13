@@ -52,6 +52,7 @@
             width: 100%;
             min-height: 100vh;
             overflow-x: hidden;
+            text-align: left;
         }
 
         @font-face {
@@ -60,14 +61,13 @@
             font-display: swap;
         }
 
-        /* 隐藏滚动条 */
         ::-webkit-scrollbar {
             width: 0;
             height: 0;
             display: none;
         }
 
-        /* ========== 卡片容器（弹性列，页脚自动沉底） ========== */
+        /* ========== 卡片容器 ========== */
         .card-container {
             display: flex;
             flex-direction: column;
@@ -76,28 +76,24 @@
             background-color: var(--white);
         }
 
-        /* 卡片通用样式（无圆角，左对齐） */
         .card {
             background-color: var(--white);
             width: 100%;
             padding: 0.5rem 1.25rem;
             box-sizing: border-box;
             border-radius: 0 !important;
-            text-align: left; /* 强制卡片内所有文本左对齐（除特殊覆盖） */
+            text-align: left;
         }
 
-        /* 句子和文章卡片的外层包装，增加顶部间距 */
         .sentence-card-wrapper,
         .article-card-wrapper {
             margin-top: 1.5rem;
         }
 
-        /* 音乐卡片包装器（默认无特殊行为） */
         .music-card-wrapper {
             flex: 0 0 auto;
         }
 
-        /* 当且仅当页面只有音乐卡片时，让音乐卡片垂直居中 */
         .card-container.music-card-only {
             justify-content: center;
         }
@@ -106,9 +102,9 @@
             width: 100%;
         }
 
-        /* ---------- 音乐卡片内部（与 index.html 完全一致，文本左对齐） ---------- */
+        /* ---------- 音乐卡片（修复间距） ---------- */
         #album-box {
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.5rem;  /* 与下方控制区域拉开距离 */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -144,7 +140,7 @@
         .player-control-wrapper {
             position: relative;
             height: 3.75rem;
-            margin-top: 1.25rem !important;
+            margin-top: 0.5rem;  /* 确保与上方封面有间距 */
         }
         .progress-bar {
             position: absolute;
@@ -179,7 +175,7 @@
             pointer-events: none;
             flex: 1;
             min-width: 0;
-            text-align: left; /* 强制左对齐 */
+            text-align: left;
         }
         .play-pause-icon {
             pointer-events: auto;
@@ -218,7 +214,7 @@
         .play-pause-icon i.play-icon,
         .play-pause-icon i.pause-icon { display: none; }
 
-        /* ---------- 句子卡片（文本左对齐，来源右对齐） ---------- */
+        /* ---------- 句子卡片 ---------- */
         .sentence-image {
             width: 100%;
             margin-bottom: 1.25rem;
@@ -242,10 +238,10 @@
             line-height: 1.8;
             font-size: 1rem;
             color: var(--gray-6);
-            text-align: left; /* 左对齐 */
+            text-align: left;
         }
         .from {
-            text-align: right; /* 来源右对齐 */
+            text-align: right;
             margin-top: 0.625rem;
         }
         .from span {
@@ -253,7 +249,7 @@
             color: var(--gray-4);
         }
 
-        /* ---------- 文章卡片（标题/作者/正文左对齐） ---------- */
+        /* ---------- 文章卡片 ---------- */
         .bg-img {
             width: 100%;
             margin-bottom: 1.5rem;
@@ -274,7 +270,7 @@
         }
         .article-info {
             padding-bottom: 0.5rem;
-            text-align: left; /* 左对齐 */
+            text-align: left;
         }
         .title {
             font-size: 1.5rem;
@@ -290,11 +286,11 @@
             line-height: 1.4;
             font-size: 1.05rem;
             font-weight: 500;
-            text-align: justify; /* 正文两端对齐，符合阅读习惯 */
+            text-align: justify;
             color: var(--gray-5);
         }
 
-        /* ---------- 底部下载页脚（无圆角，不遮挡） ---------- */
+        /* ---------- 底部下载页脚 ---------- */
         .app-download-bar {
             margin-top: 2rem;
             background: var(--white);
@@ -409,7 +405,6 @@
             });
         }
 
-        // 音乐卡片
         function renderMusicCard(music) {
             if (!music || !music.title) return '';
             const coverUrl = music.cover?.trim() || '';
