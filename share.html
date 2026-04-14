@@ -51,7 +51,6 @@
                 --toast-text: #f0f0f0;
             }
             body.dark-mode-fix {
-                /* 保证暗色背景 */
                 background-color: var(--white);
             }
         }
@@ -95,20 +94,26 @@
             background-color: var(--white);
         }
 
-        /* 滚动区域，完全撑满剩余空间 */
+        /* 滚动区域：弹性列布局，支持垂直居中 */
         .share-scroll-area {
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: thin;
-            padding: 0.5rem 0 0 0;
+            display: flex;
+            flex-direction: column;
         }
 
         /* 卡片容器内边距（与 index 卡片区域对齐） */
         .card-wrapper {
             padding: 0.5rem 1.25rem 1.5rem 1.25rem;
             width: 100%;
+        }
+
+        /* 垂直居中模式（仅对音乐卡片生效） */
+        .share-scroll-area.vertical-center-mode .card-wrapper {
+            margin: auto 0;
         }
 
         /* ---------- 卡片核心样式 (与 index 完全一致) ---------- */
@@ -132,7 +137,7 @@
 
         /* 音乐卡片专用 */
         #album-box {
-            margin-bottom: 1.25rem;
+            margin-bottom: 2rem;          /* 增加间距，避免与播放组件重叠 */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -168,7 +173,7 @@
         .player-control-wrapper {
             position: relative;
             height: 3.75rem;
-            margin-top: 1.25rem;
+            margin-top: 0.25rem;          /* 增加微小上边距，辅助视觉舒适 */
         }
         .progress-bar {
             position: absolute;
@@ -262,6 +267,7 @@
             line-height: 1.8;
             font-size: 1rem;
             color: var(--gray-6);
+            white-space: pre-wrap;
         }
         .from {
             text-align: right;
@@ -339,7 +345,6 @@
         .app-icon {
             width: 2.8rem;
             height: 2.8rem;
-            background: var(--gray-7);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -378,9 +383,6 @@
             .download-btn {
                 background: var(--gray-5);
                 color: #1e1e1e;
-            }
-            .app-icon {
-                background: var(--gray-5);
             }
         }
 
@@ -471,6 +473,17 @@
         setTimeout(() => div.remove(), duration);
     }
 
+    // 控制音乐卡片垂直居中模式 (仅当 type === 'music')
+    function setVerticalCenterMode(isMusicMode) {
+        const scrollArea = document.getElementById('scrollArea');
+        if (!scrollArea) return;
+        if (isMusicMode) {
+            scrollArea.classList.add('vertical-center-mode');
+        } else {
+            scrollArea.classList.remove('vertical-center-mode');
+        }
+    }
+
     // ========== 音乐播放器初始化 (完全复制 index 逻辑) ==========
     function initMusicPlayer(musicSrc, title, artist) {
         if (!musicSrc) return;
@@ -515,7 +528,7 @@
         playPauseBtn.addEventListener('click', togglePlay);
     }
 
-    // ========== 卡片渲染：完全模仿 index 单卡片样式 ==========
+    // ========== 卡片渲染：修复文章换行符转义、句子换行、增加间距 ==========
     function renderMusicCard(music) {
         if (!music || !music.title) return '';
         const coverUrl = music.cover?.trim() || '';
@@ -546,12 +559,16 @@
 
     function renderSentenceCard(sentence) {
         if (!sentence?.text) return '';
+        // 修复换行符：转义后把 \n 替换为 <br>
+        const rawText = sentence.text || '';
+        const escapedText = escapeHtml(rawText);
+        const textWithBreaks = escapedText.replace(/\n/g, '<br>');
         const imgHtml = sentence.image ? `<div class="sentence-image"><img id="shareSentenceImg" src="${escapeHtml(sentence.image)}" alt="句子配图" onerror="this.style.display='none';this.parentElement.style.display='none'"></div>` : '';
         return `
             <div class="card" data-type="sentence">
                 <div class="card-inner">
                     ${imgHtml}
-                    <p id="sentenceText">${escapeHtml(sentence.text).replace(/\n/g, '<br>')}</p>
+                    <p id="sentenceText">${textWithBreaks}</p>
                     ${sentence.author ? `<div class="from"><span>—— ${escapeHtml(sentence.author)}</span></div>` : ''}
                 </div>
             </div>
@@ -560,8 +577,11 @@
 
     function renderArticleCard(article) {
         if (!article?.title) return '';
+        // 修复文章内容中 <br> 被转义的问题: 先转义原文，再将 \n 替换为 <br>，避免显示字面 '<br>'
+        const rawContent = article.content || '';
+        const escapedContent = escapeHtml(rawContent);
+        const contentWithBreaks = escapedContent.replace(/\n/g, '<br>');
         const imgHtml = article.image ? `<div class="bg-img"><img id="shareArticleImg" src="${escapeHtml(article.image)}" alt="文章配图" onerror="this.style.display='none';this.parentElement.style.display='none'"></div>` : '';
-        const fullContent = (article.content || '').replace(/\n/g, '<br>');
         return `
             <div class="card" data-type="article">
                 <div class="card-inner">
@@ -569,7 +589,7 @@
                     <div class="article-info">
                         <div class="title">${escapeHtml(article.title)}</div>
                         <div class="theauthor">文 / ${escapeHtml(article.author || '佚名')}</div>
-                        <div class="article-content-full">${escapeHtml(fullContent)}</div>
+                        <div class="article-content-full">${contentWithBreaks}</div>
                     </div>
                 </div>
             </div>
@@ -581,31 +601,46 @@
         const container = document.getElementById('cardContainer');
         if (!container) return;
         let html = '';
-        let hasMusic = false, hasSentence = false, hasArticle = false;
+        let hasMusic = false;
+        let isPureMusicMode = false;   // 用于控制垂直居中
+
         // 优先根据 type 参数展示指定卡片，若无效则按顺序展示所有
         if (type === 'music' && data.music?.title) {
             html = renderMusicCard(data.music);
             hasMusic = true;
+            isPureMusicMode = true;
         } else if (type === 'sentence' && data.sentence?.text) {
             html = renderSentenceCard(data.sentence);
-            hasSentence = true;
+            isPureMusicMode = false;
         } else if (type === 'article' && data.article?.title) {
             html = renderArticleCard(data.article);
-            hasArticle = true;
+            isPureMusicMode = false;
         } else {
             // 兼容旧链接或未传type: 展示全部卡片，顺序与 index 一致
-            if (data.music?.title) { html += renderMusicCard(data.music); hasMusic = true; }
-            if (data.sentence?.text) { html += renderSentenceCard(data.sentence); hasSentence = true; }
-            if (data.article?.title) { html += renderArticleCard(data.article); hasArticle = true; }
+            if (data.music?.title) { 
+                html += renderMusicCard(data.music); 
+                hasMusic = true; 
+            }
+            if (data.sentence?.text) { 
+                html += renderSentenceCard(data.sentence); 
+            }
+            if (data.article?.title) { 
+                html += renderArticleCard(data.article); 
+            }
             if (!html) html = '<div class="error-state">暂无内容可分享</div>';
+            // 展示全部卡片时，不强制垂直居中（即使包含音乐卡片也不启用居中，保持原生滚动）
+            isPureMusicMode = false;
         }
 
         container.innerHTML = html;
 
-        // 音乐播放器启动
+        // 音乐播放器启动 (只有真正存在音乐卡片时才初始化)
         if (hasMusic && data.music?.src) {
             initMusicPlayer(data.music.src, data.music.title, data.music.artist);
         }
+        
+        // 根据是否为纯音乐分享模式 设置垂直居中类 (解决音乐卡片垂直居中需求)
+        setVerticalCenterMode(isPureMusicMode);
     }
 
     // 加载数据
@@ -613,6 +648,7 @@
         const container = document.getElementById('cardContainer');
         if (!date) {
             container.innerHTML = '<div class="error-state">缺少日期参数，分享链接无效</div>';
+            setVerticalCenterMode(false);
             return;
         }
         container.innerHTML = '<div class="loading-state"><i class="ri-loader-4-line"></i> 加载中...</div>';
@@ -627,6 +663,7 @@
         } catch (err) {
             console.error(err);
             container.innerHTML = `<div class="error-state">加载失败，请稍后重试<br>${escapeHtml(err.message)}</div>`;
+            setVerticalCenterMode(false);
         }
     }
 
