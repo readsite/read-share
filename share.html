@@ -6,7 +6,7 @@
     <title>Read. 分享 · 安于闲，乐于独</title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
     <style>
-        /* ========== 全局重置 + 变量 ========== */
+        /* ========== 全局重置 + 变量 (与 index 完全一致) ========== */
         * {
             margin: 0;
             padding: 0;
@@ -27,8 +27,12 @@
             --gray-7: #222222;
             --album-ring: var(--gray-7);
             --album-ring-light: rgba(255,255,255,0.05);
+            --overlay-heavy: rgba(0, 0, 0, 0.9);
+            --toast-bg: rgba(0, 0, 0, 0.7);
+            --toast-text: #ffffff;
         }
 
+        /* 暗色主题 (跟随系统，与 index 行为一致) */
         @media (prefers-color-scheme: dark) {
             :root {
                 --white: #1e1e1e;
@@ -43,6 +47,12 @@
                 --gray-7: #2a2a2a;
                 --album-ring: var(--gray-1);
                 --album-ring-light: rgba(255,255,255,0.03);
+                --toast-bg: rgba(0, 0, 0, 0.8);
+                --toast-text: #f0f0f0;
+            }
+            body.dark-mode-fix {
+                /* 保证暗色背景 */
+                background-color: var(--white);
             }
         }
 
@@ -56,6 +66,9 @@
             width: 100vw;
             height: 100vh;
             overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
         }
 
         @font-face {
@@ -70,85 +83,60 @@
         }
         ::-webkit-scrollbar-thumb {
             background: var(--gray-3);
+            border-radius: 4px;
         }
 
-        /* ---------- 全新固定底部布局 (类似index的stats-actions始终贴底) ---------- */
-        .share-layout {
+        /* ========== 主布局：固定底部栏，内容滚动 ========== */
+        .share-app {
             display: flex;
             flex-direction: column;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             background-color: var(--white);
-            position: relative;
-            overflow: hidden;
         }
 
-        /* 滚动内容区域 — 占据所有剩余空间，内部滚动 */
+        /* 滚动区域，完全撑满剩余空间 */
         .share-scroll-area {
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: thin;
+            padding: 0.5rem 0 0 0;
         }
 
-        /* 卡片内容包装器 (普通流式布局) */
-        .cards-wrapper {
-            padding: 0.5rem 1.25rem 1rem 1.25rem;
+        /* 卡片容器内边距（与 index 卡片区域对齐） */
+        .card-wrapper {
+            padding: 0.5rem 1.25rem 1.5rem 1.25rem;
             width: 100%;
         }
 
-        /* 只有音乐卡片时的垂直居中容器 (填充整个滚动区域，实现视觉居中) */
-        .music-center-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100%;
-            width: 100%;
-            padding: 1rem 1.25rem;
-        }
-
-        /* 重置卡片为普通块级元素，移除绝对定位及固定高度，保证自然滚动 */
+        /* ---------- 卡片核心样式 (与 index 完全一致) ---------- */
         .card {
-            position: relative !important;
+            background-color: var(--white);
             display: flex;
             flex-direction: column;
-            width: 100% !important;
-            height: auto !important;
-            min-height: auto !important;
-            padding: 0;
-            background-color: transparent;
-            transform: none !important;
-            transition: none !important;
-            margin: 0;
-        }
-
-        /* 卡片内部容器：移除滚动，所有滚动交给父级 .share-scroll-area */
-        .card .card-inner {
-            overflow-y: visible !important;
-            background-color: transparent;
-            padding: 0;
-            scrollbar-width: none;
-        }
-
-        /* 覆盖文章卡片可能出现的内部滚动条 */
-        .card#article .card-inner {
-            overflow-y: visible !important;
-            padding-right: 0;
-        }
-
-        /* 音乐卡片内部布局微调 (保留视觉节奏) */
-        .music-card-wrapper {
             width: 100%;
+            height: auto;
+            border-radius: 0;
+            position: relative;
         }
 
+        .card .card-inner {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: visible;
+            background-color: var(--white);
+        }
+
+        /* 音乐卡片专用 */
         #album-box {
             margin-bottom: 1.25rem;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-
         .album-image {
             position: relative;
             width: 12.5rem;
@@ -169,7 +157,6 @@
                         0 0 0 2.8125rem var(--album-ring), 0 0 0 2.875rem var(--album-ring-light),
                         0 0 0 2.90625rem var(--album-ring);
         }
-
         .album-image img {
             width: 100%;
             height: 100%;
@@ -178,13 +165,11 @@
             position: relative;
             z-index: 1;
         }
-
         .player-control-wrapper {
             position: relative;
             height: 3.75rem;
-            margin-top: 1.5rem;
+            margin-top: 1.25rem;
         }
-
         .progress-bar {
             position: absolute;
             width: 100%;
@@ -192,18 +177,12 @@
             background-color: var(--gray-0);
             margin: 0;
         }
-
-        .dark-mode .progress-bar {
-            background: rgba(255,255,255,0.05);
-        }
-
         .progress-fill {
             height: 100%;
             background-color: var(--gray-1);
             width: 0%;
             transition: width 0.1s linear;
         }
-
         .player-info-overlay {
             position: absolute;
             top: 0;
@@ -217,14 +196,11 @@
             box-sizing: border-box;
             pointer-events: none;
         }
-
         .track-info {
             pointer-events: none;
             flex: 1;
             min-width: 0;
-            text-align: left;
         }
-
         .play-pause-icon {
             pointer-events: auto;
             margin: 0;
@@ -234,48 +210,43 @@
             cursor: pointer;
             flex-shrink: 0;
         }
-
         .play-pause-icon i {
-            font-size: 2rem;
+            font-size: 2.25rem;
             line-height: 1;
             color: var(--gray-6);
         }
-
         .track-album {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 500;
-            margin-bottom: 0.2rem;
+            margin-bottom: 0.25rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             color: var(--gray-6);
         }
-
         .track-singer {
-            font-size: 0.75rem;
+            font-size: 0.8125rem;
             margin: 0;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             color: var(--gray-4);
         }
-
         .play-pause-icon.play i.play-icon { display: block; }
         .play-pause-icon.pause i.pause-icon { display: block; }
         .play-pause-icon i.play-icon,
         .play-pause-icon i.pause-icon { display: none; }
 
-        /* 句子卡片样式 */
+        /* 句子卡片 */
         .sentence-image {
             width: 100%;
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
             position: relative;
             padding-bottom: 56.25%;
             overflow: hidden;
             background-color: var(--gray-1);
-            border-radius: 4px;
+            border-radius: 0;
         }
-
         .sentence-image img {
             position: absolute;
             top: 0;
@@ -286,36 +257,30 @@
             display: block;
             object-position: top;
         }
-
         #sentenceText {
-            margin: 0 0 0.8rem 0;
-            line-height: 1.7;
+            margin: 0 0 1.25rem 0;
+            line-height: 1.8;
             font-size: 1rem;
             color: var(--gray-6);
-            text-align: left;
         }
-
         .from {
             text-align: right;
-            margin-top: 0.4rem;
+            margin-top: 0.625rem;
         }
-
         .from span {
-            font-size: 0.8rem;
+            font-size: 0.875rem;
             color: var(--gray-4);
         }
 
-        /* 文章卡片样式 */
+        /* 文章卡片 */
         .bg-img {
             width: 100%;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             position: relative;
             padding-bottom: 56.25%;
             overflow: hidden;
             background-color: var(--gray-1);
-            border-radius: 4px;
         }
-
         .bg-img img {
             position: absolute;
             top: 0;
@@ -326,120 +291,89 @@
             display: block;
             object-position: top;
         }
-
         .article-info {
             padding-bottom: 0.5rem;
-            text-align: left;
         }
-
         .title {
-            font-size: 1.4rem;
-            margin-bottom: 0.3rem;
+            font-size: 1.5rem;
+            margin-bottom: 0.375rem;
             color: var(--gray-6);
         }
-
         .theauthor {
-            font-size: 0.8rem;
-            margin: 0.5rem 0;
+            font-size: 0.875rem;
+            margin: 0.625rem 0;
             color: var(--gray-4);
         }
-
-        .article p,
-        .article-text-full,
-        .article-truncated {
+        .article p, .article-content-full {
             line-height: 1.5;
-            font-size: 1rem;
+            font-size: 1.05rem;
             font-weight: 500;
             text-align: justify;
             color: var(--gray-5);
             word-break: break-word;
         }
-
-        .read-more-static {
-            display: inline-block;
-            margin-top: 12px;
-            color: var(--gray-5);
-            background: var(--gray-1);
-            padding: 4px 12px;
-            font-size: 0.75rem;
-            text-align: center;
-            opacity: 0.75;
-            letter-spacing: 0.3px;
-            cursor: default;
-            pointer-events: none;
-            font-family: inherit;
-            border-radius: 20px;
+        .article-content-full {
+            white-space: pre-wrap;
         }
 
-        /* 底部下载栏 — 固定底部，与 index 的 stats-actions 视觉一致 */
+        /* 底部下载栏 — 固定底部，与 index stats-actions 类似视觉 */
         .app-download-bar {
             background: var(--white);
-            border-top: 1px solid var(--gray-0);
-            padding: 0.7rem 1rem;
+            padding: 0.7rem 1.25rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 0.75rem;
             width: 100%;
             flex-shrink: 0;
             backdrop-filter: blur(0px);
-            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+            z-index: 10;
         }
-
         .download-info {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
+            gap: 0.7rem;
             text-align: left;
         }
-
         .app-icon {
-            width: 2.2rem;
-            height: 2.2rem;
+            width: 2.5rem;
+            height: 2.5rem;
             background: var(--gray-7);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 1.1rem;
-            border-radius: 12px;
             overflow: hidden;
         }
-
-        .appicon {
-            width: 52px;
-            height: 52px;
+        .app-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
-
         .app-text h4 {
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 600;
             color: var(--gray-6);
         }
-
         .app-text p {
-            font-size: 0.65rem;
+            font-size: 0.8rem;
             color: var(--gray-4);
         }
-
         .download-btn {
             background: var(--gray-7);
             color: white;
             border: none;
-            padding: 0.4rem 1rem;
-            font-size: 0.8rem;
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
             font-weight: 500;
             cursor: pointer;
             font-family: inherit;
-            border-radius: 30px;
             transition: opacity 0.2s;
+            flex-shrink: 0;
         }
-
         .download-btn:active {
             opacity: 0.7;
         }
-
         @media (prefers-color-scheme: dark) {
             .download-btn {
                 background: var(--gray-5);
@@ -447,375 +381,278 @@
             }
             .app-icon {
                 background: var(--gray-5);
-                color: #1e1e1e;
             }
         }
 
-        /* 加载和错误状态 */
-        .loading-state, .error-state {
-            text-align: center;
-            padding: 2rem 1rem;
-            color: var(--gray-4);
-        }
-
-        .error-state {
-            color: #e5484d;
-        }
-
-        i, .ri-loader-4-line {
-            animation: none !important;
-        }
-
-        /* 文章内容排版细节 */
-        .article p, .article-text-full, .article-truncated {
-            line-height: 1.6;
-            word-break: break-word;
-        }
-
-        /* 卡片内部额外边距优化 */
-        .sentence-card-wrapper,
-        .article-card-wrapper,
-        .music-card-wrapper {
-            width: 100%;
-        }
-
-        .card .card-inner > *:first-child {
-            margin-top: 0;
-        }
-        
-        /* 消除旧有绝对定位可能造成的偏移 */
-        .card-container {
-            display: none;
-        }
-
-        /* toast 轻提示 (无旋转) */
+        /* toast 提示 */
         .share-toast {
             position: fixed;
             bottom: 90px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.7);
-            color: #fff;
-            padding: 6px 14px;
+            background: var(--toast-bg);
+            color: var(--toast-text);
+            padding: 6px 16px;
             font-size: 13px;
-            z-index: 9999;
-            backdrop-filter: blur(4px);
             border-radius: 40px;
+            z-index: 10000;
             white-space: nowrap;
+            backdrop-filter: blur(8px);
+            pointer-events: none;
+        }
+
+        /* 加载/错误状态 */
+        .loading-state, .error-state {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            color: var(--gray-4);
+        }
+        .error-state {
+            color: #e5484d;
+        }
+        .ri-loader-4-line {
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div id="app" class="loading-state">
-        <p>加载中...</p>
+<div id="shareRoot" class="share-app">
+    <div class="share-scroll-area" id="scrollArea">
+        <div class="card-wrapper" id="cardContainer">
+            <!-- 动态渲染卡片内容 -->
+        </div>
     </div>
+    <div class="app-download-bar" id="downloadBar">
+        <div class="download-info">
+            <div class="app-icon">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E" alt="icon">
+            </div>
+            <div class="app-text">
+                <h4>Read.</h4>
+                <p>安于闲 · 乐于独 · 每日精选</p>
+            </div>
+        </div>
+        <button class="download-btn" id="appDownloadBtn">下载 App</button>
+    </div>
+</div>
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const date = urlParams.get('date');
-        const type = urlParams.get('type');
-        const API_BASE = 'https://solitudenook.top';
+<script>
+    // ========== 工具函数 ==========
+    const urlParams = new URLSearchParams(window.location.search);
+    const date = urlParams.get('date');
+    const type = urlParams.get('type');   // 'music', 'sentence', 'article'
+    const API_BASE = 'https://solitudenook.top';
 
-        let currentAudio = null;
+    let currentAudio = null;
 
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-                return c;
-            });
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) { return c; });
+    }
+
+    function showToast(msg, duration = 1800) {
+        let toast = document.querySelector('.share-toast');
+        if (toast) toast.remove();
+        const div = document.createElement('div');
+        div.className = 'share-toast';
+        div.innerText = msg;
+        document.body.appendChild(div);
+        setTimeout(() => div.remove(), duration);
+    }
+
+    // ========== 音乐播放器初始化 (完全复制 index 逻辑) ==========
+    function initMusicPlayer(musicSrc, title, artist) {
+        if (!musicSrc) return;
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
         }
-
-        // 音乐卡片渲染 (结构干净，无绝对定位依赖)
-        function renderMusicCard(music) {
-            if (!music || !music.title) return '';
-            const coverUrl = music.cover?.trim() || '';
-            const coverHtml = coverUrl 
-                ? `<img src="${escapeHtml(coverUrl)}" alt="cover" onerror="this.src='';">` 
-                : '<div style="width:100%;height:100%;background:var(--gray-2);border-radius:50%;"></div>';
-            return `
-                <div class="music-card-wrapper">
-                    <div class="card" id="music-share-card" data-type="music">
-                        <div class="card-inner">
-                            <div id="album-box">
-                                <div class="album-image">${coverHtml}</div>
-                            </div>
-                            <div class="player-control-wrapper" data-music-src="${escapeHtml(music.src || '')}">
-                                <div class="progress-bar"><div class="progress-fill" id="shareProgressFill"></div></div>
-                                <div class="player-info-overlay">
-                                    <div class="track-info">
-                                        <p class="track-album">${escapeHtml(music.title)}</p>
-                                        <p class="track-singer">${escapeHtml(music.artist || '未知歌手')}</p>
-                                    </div>
-                                    <div class="play-pause-icon pause" id="sharePlayPauseBtn">
-                                        <i class="ri-play-circle-line pause-icon"></i>
-                                        <i class="ri-pause-circle-line play-icon"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // 句子卡片渲染
-        function renderSentenceCard(sentence) {
-            if (!sentence?.text) return '';
-            const imgHtml = sentence.image 
-                ? `<div class="sentence-image"><img src="${escapeHtml(sentence.image)}" alt="句子配图" onerror="this.style.display='none';this.parentElement.style.display='none'"></div>` 
-                : '';
-            return `
-                <div class="sentence-card-wrapper">
-                    <div class="card" data-type="sentence">
-                        <div class="card-inner">
-                            ${imgHtml}
-                            <p id="sentenceText">${escapeHtml(sentence.text).replace(/\n/g, '<br>')}</p>
-                            ${sentence.author ? `<div class="from"><span>—— ${escapeHtml(sentence.author)}</span></div>` : ''}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // 文章卡片渲染 (保留“查看余下全文”静态提示)
-        function renderArticleCard(article) {
-            if (!article?.title) return '';
-            const imgHtml = article.image 
-                ? `<div class="bg-img"><img src="${escapeHtml(article.image)}" alt="文章配图" onerror="this.style.display='none';this.parentElement.style.display='none'"></div>` 
-                : '';
-            const rawContent = article.content || '';
-            const isLong = rawContent.length > 800;
-            let contentHtml = '';
-            
-            if (isLong) {
-                const truncatedText = rawContent.slice(0, 800);
-                const escapedTruncated = escapeHtml(truncatedText).replace(/\n/g, '<br>');
-                contentHtml = `
-                    <div class="article-text-wrapper">
-                        <div class="article-truncated">${escapedTruncated}…</div>
-                        <span class="read-more-static">下载App查看余下全文</span>
-                    </div>
-                `;
+        const audio = new Audio(musicSrc);
+        audio.preload = 'metadata';
+        currentAudio = audio;
+        const progressFill = document.getElementById('shareProgressFill');
+        const playPauseBtn = document.getElementById('sharePlayPauseBtn');
+        if (!progressFill || !playPauseBtn) return;
+        const updateProgress = () => {
+            if (audio.duration && isFinite(audio.duration)) {
+                progressFill.style.width = (audio.currentTime / audio.duration) * 100 + '%';
             } else {
-                const fullEscaped = escapeHtml(rawContent).replace(/\n/g, '<br>');
-                contentHtml = `<div class="article-text-full">${fullEscaped}</div>`;
+                progressFill.style.width = '0%';
             }
-            
-            return `
-                <div class="article-card-wrapper">
-                    <div class="card" data-type="article" id="article-share-card">
-                        <div class="card-inner">
-                            ${imgHtml}
-                            <div class="article-info">
-                                <div class="title">${escapeHtml(article.title)}</div>
-                                <div class="theauthor">文 / ${escapeHtml(article.author || '佚名')}</div>
-                                <div class="article">${contentHtml}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // 音乐播放器初始化 (完全保留原有逻辑)
-        function initMusicPlayer() {
-            const musicCard = document.getElementById('music-share-card');
-            if (!musicCard) return;
-            const wrapper = musicCard.querySelector('.player-control-wrapper');
-            if (!wrapper) return;
-            const audioSrc = wrapper.getAttribute('data-music-src');
-            if (!audioSrc) return;
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio = null;
-            }
-            const audio = new Audio(audioSrc);
-            audio.preload = 'metadata';
-            currentAudio = audio;
-            const progressFill = document.getElementById('shareProgressFill');
-            const playPauseBtn = document.getElementById('sharePlayPauseBtn');
-            if (!progressFill || !playPauseBtn) return;
-            const updateProgress = () => {
-                if (audio.duration && isFinite(audio.duration)) {
-                    progressFill.style.width = (audio.currentTime / audio.duration) * 100 + '%';
-                } else {
-                    progressFill.style.width = '0%';
-                }
-            };
-            audio.addEventListener('timeupdate', updateProgress);
-            audio.addEventListener('loadedmetadata', updateProgress);
-            audio.addEventListener('ended', () => {
+        };
+        audio.addEventListener('timeupdate', updateProgress);
+        audio.addEventListener('loadedmetadata', updateProgress);
+        audio.addEventListener('ended', () => {
+            playPauseBtn.classList.remove('play');
+            playPauseBtn.classList.add('pause');
+            progressFill.style.width = '0%';
+            audio.currentTime = 0;
+        });
+        const togglePlay = (e) => {
+            e.stopPropagation();
+            if (audio.paused) {
+                audio.play().catch(() => showToast('无法播放，请检查网络'));
+                playPauseBtn.classList.remove('pause');
+                playPauseBtn.classList.add('play');
+            } else {
+                audio.pause();
                 playPauseBtn.classList.remove('play');
                 playPauseBtn.classList.add('pause');
-                progressFill.style.width = '0%';
-                audio.currentTime = 0;
-            });
-            const togglePlay = (e) => {
-                e.stopPropagation();
-                if (audio.paused) {
-                    audio.play().catch(() => showSimpleToast('无法播放，请检查网络'));
-                    playPauseBtn.classList.remove('pause');
-                    playPauseBtn.classList.add('play');
-                } else {
-                    audio.pause();
-                    playPauseBtn.classList.remove('play');
-                    playPauseBtn.classList.add('pause');
-                }
-            };
-            playPauseBtn.removeEventListener('click', togglePlay);
-            playPauseBtn.addEventListener('click', togglePlay);
-            window.addEventListener('beforeunload', () => audio.pause());
-        }
-
-        function showSimpleToast(msg) {
-            let toast = document.querySelector('.share-toast');
-            if (toast) toast.remove();
-            const div = document.createElement('div');
-            div.className = 'share-toast';
-            div.innerText = msg;
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 1800);
-        }
-
-        // 全新渲染：固定底部布局，内容区域滚动，完美兼容所有卡片类型，音乐卡片垂直居中
-        function renderPageContent(data) {
-            let cardsHtml = '';
-            let hasMusic = false, hasSentence = false, hasArticle = false;
-
-            if (type === 'music' && data.music?.title) {
-                cardsHtml = renderMusicCard(data.music);
-                hasMusic = true;
-            } else if (type === 'sentence' && data.sentence?.text) {
-                cardsHtml = renderSentenceCard(data.sentence);
-                hasSentence = true;
-            } else if (type === 'article' && data.article?.title) {
-                cardsHtml = renderArticleCard(data.article);
-                hasArticle = true;
-            } else {
-                if (data.music?.title) { cardsHtml += renderMusicCard(data.music); hasMusic = true; }
-                if (data.sentence?.text) { cardsHtml += renderSentenceCard(data.sentence); hasSentence = true; }
-                if (data.article?.title) { cardsHtml += renderArticleCard(data.article); hasArticle = true; }
-                if (!cardsHtml) cardsHtml = '<div class="error-state">暂无任何内容可分享</div>';
             }
-
-            // 判断是否仅音乐卡片 (用于垂直居中布局)
-            const onlyMusic = hasMusic && !hasSentence && !hasArticle;
-            
-            // 构建底部固定栏
-            const downloadBar = `
-                <div class="app-download-bar">
-                    <div class="download-info">
-                        <div class="app-icon"><img class="appicon" src="icon-192.png" alt="app icon"></div>
-                        <div class="app-text"><h4>Read.</h4><p>安于闲 · 乐于独 · 每日精选</p></div>
-                    </div>
-                    <button class="download-btn" id="appDownloadBtn">下载 App</button>
-                </div>
-            `;
-            
-            let mainContent = '';
-            if (onlyMusic) {
-                // 音乐卡片垂直居中：在滚动区域内使用flex居中容器
-                mainContent = `
-                    <div class="share-layout">
-                        <div class="share-scroll-area">
-                            <div class="music-center-wrapper">
-                                ${cardsHtml}
-                            </div>
-                        </div>
-                        ${downloadBar}
-                    </div>
-                `;
-            } else {
-                // 普通内容（句子/文章/混合）自然从上到下排列，滚动区域正常滚动
-                mainContent = `
-                    <div class="share-layout">
-                        <div class="share-scroll-area">
-                            <div class="cards-wrapper">
-                                ${cardsHtml}
-                            </div>
-                        </div>
-                        ${downloadBar}
-                    </div>
-                `;
-            }
-            
-            const app = document.getElementById('app');
-            app.innerHTML = mainContent;
-            
-            // 如果有音乐卡片，初始化播放器
-            if (hasMusic) initMusicPlayer();
-            
-            // 绑定下载按钮事件
-            const downloadBtn = document.getElementById('appDownloadBtn');
-            if (downloadBtn) downloadBtn.addEventListener('click', () => window.location.href = 'https://read-download.solitudenook.top');
-        }
-
-        async function loadShareContent() {
-            const app = document.getElementById('app');
-            if (!date) {
-                app.innerHTML = '<div class="error-state">缺少日期参数，分享链接无效</div>';
-                return;
-            }
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000);
-                const res = await fetch(`${API_BASE}/api/posts/${date}`, { cache: 'no-store', signal: controller.signal });
-                clearTimeout(timeoutId);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const data = await res.json();
-                renderPageContent(data);
-            } catch (err) {
-                app.innerHTML = `<div class="error-state">加载失败，请稍后重试<br>${escapeHtml(err.message)}</div>`;
-            }
-        }
-
-        loadShareContent();
-
-        // 暗色模式跟随系统
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        const updateDarkClass = () => {
-            if (mediaQuery.matches) document.body.classList.add('dark-mode');
-            else document.body.classList.remove('dark-mode');
         };
-        updateDarkClass();
-        mediaQuery.addEventListener('change', updateDarkClass);
-        
-        // 额外样式补丁：保证图片自适应与卡片圆润
-        const styleFix = document.createElement('style');
-        styleFix.textContent = `
-            .cards-wrapper .card, .music-center-wrapper .card {
-                max-width: 100%;
-                margin: 0 auto;
-            }
-            .music-center-wrapper {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-direction: column;
-            }
-            .share-scroll-area {
-                scroll-behavior: smooth;
-            }
-            .app-download-bar {
-                background: var(--white);
-                border-top: 1px solid var(--gray-1);
-            }
-            .dark-mode .app-download-bar {
-                border-top-color: rgba(255,255,255,0.08);
-            }
-            .card .card-inner img {
-                border-radius: 12px;
-            }
-            .sentence-image, .bg-img {
-                border-radius: 16px;
-            }
+        playPauseBtn.removeEventListener('click', togglePlay);
+        playPauseBtn.addEventListener('click', togglePlay);
+    }
+
+    // ========== 卡片渲染：完全模仿 index 单卡片样式 ==========
+    function renderMusicCard(music) {
+        if (!music || !music.title) return '';
+        const coverUrl = music.cover?.trim() || '';
+        const coverHtml = coverUrl ? `<img id="shareAlbumImg" src="${escapeHtml(coverUrl)}" alt="cover" onerror="this.src='';">` : '<div style="width:100%;height:100%;background:var(--gray-2);border-radius:50%;"></div>';
+        return `
+            <div class="card" id="music-share-card">
+                <div class="card-inner">
+                    <div id="album-box">
+                        <div class="album-image">${coverHtml}</div>
+                    </div>
+                    <div class="player-control-wrapper" data-music-src="${escapeHtml(music.src || '')}">
+                        <div class="progress-bar"><div class="progress-fill" id="shareProgressFill"></div></div>
+                        <div class="player-info-overlay">
+                            <div class="track-info">
+                                <p class="track-album">${escapeHtml(music.title)}</p>
+                                <p class="track-singer">${escapeHtml(music.artist || '未知歌手')}</p>
+                            </div>
+                            <div class="play-pause-icon pause" id="sharePlayPauseBtn">
+                                <i class="ri-play-circle-line pause-icon"></i>
+                                <i class="ri-pause-circle-line play-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
-        document.head.appendChild(styleFix);
-    </script>
+    }
+
+    function renderSentenceCard(sentence) {
+        if (!sentence?.text) return '';
+        const imgHtml = sentence.image ? `<div class="sentence-image"><img id="shareSentenceImg" src="${escapeHtml(sentence.image)}" alt="句子配图" onerror="this.style.display='none';this.parentElement.style.display='none'"></div>` : '';
+        return `
+            <div class="card" data-type="sentence">
+                <div class="card-inner">
+                    ${imgHtml}
+                    <p id="sentenceText">${escapeHtml(sentence.text).replace(/\n/g, '<br>')}</p>
+                    ${sentence.author ? `<div class="from"><span>—— ${escapeHtml(sentence.author)}</span></div>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    function renderArticleCard(article) {
+        if (!article?.title) return '';
+        const imgHtml = article.image ? `<div class="bg-img"><img id="shareArticleImg" src="${escapeHtml(article.image)}" alt="文章配图" onerror="this.style.display='none';this.parentElement.style.display='none'"></div>` : '';
+        const fullContent = (article.content || '').replace(/\n/g, '<br>');
+        return `
+            <div class="card" data-type="article">
+                <div class="card-inner">
+                    ${imgHtml}
+                    <div class="article-info">
+                        <div class="title">${escapeHtml(article.title)}</div>
+                        <div class="theauthor">文 / ${escapeHtml(article.author || '佚名')}</div>
+                        <div class="article-content-full">${escapeHtml(fullContent)}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // 主渲染逻辑
+    function renderContent(data) {
+        const container = document.getElementById('cardContainer');
+        if (!container) return;
+        let html = '';
+        let hasMusic = false, hasSentence = false, hasArticle = false;
+        // 优先根据 type 参数展示指定卡片，若无效则按顺序展示所有
+        if (type === 'music' && data.music?.title) {
+            html = renderMusicCard(data.music);
+            hasMusic = true;
+        } else if (type === 'sentence' && data.sentence?.text) {
+            html = renderSentenceCard(data.sentence);
+            hasSentence = true;
+        } else if (type === 'article' && data.article?.title) {
+            html = renderArticleCard(data.article);
+            hasArticle = true;
+        } else {
+            // 兼容旧链接或未传type: 展示全部卡片，顺序与 index 一致
+            if (data.music?.title) { html += renderMusicCard(data.music); hasMusic = true; }
+            if (data.sentence?.text) { html += renderSentenceCard(data.sentence); hasSentence = true; }
+            if (data.article?.title) { html += renderArticleCard(data.article); hasArticle = true; }
+            if (!html) html = '<div class="error-state">暂无内容可分享</div>';
+        }
+
+        container.innerHTML = html;
+
+        // 音乐播放器启动
+        if (hasMusic && data.music?.src) {
+            initMusicPlayer(data.music.src, data.music.title, data.music.artist);
+        }
+    }
+
+    // 加载数据
+    async function loadShareData() {
+        const container = document.getElementById('cardContainer');
+        if (!date) {
+            container.innerHTML = '<div class="error-state">缺少日期参数，分享链接无效</div>';
+            return;
+        }
+        container.innerHTML = '<div class="loading-state"><i class="ri-loader-4-line"></i> 加载中...</div>';
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            const res = await fetch(`${API_BASE}/api/posts/${date}`, { cache: 'no-store', signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            renderContent(data);
+        } catch (err) {
+            console.error(err);
+            container.innerHTML = `<div class="error-state">加载失败，请稍后重试<br>${escapeHtml(err.message)}</div>`;
+        }
+    }
+
+    // 底部下载按钮
+    function bindDownload() {
+        const btn = document.getElementById('appDownloadBtn');
+        if (btn) btn.addEventListener('click', () => {
+            window.location.href = 'https://read-download.solitudenook.top';
+        });
+    }
+
+    // 暗色模式同步（跟随系统，但确保 body 背景一致）
+    function syncTheme() {
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (isDark) {
+            document.body.classList.add('dark-mode-fix');
+        } else {
+            document.body.classList.remove('dark-mode-fix');
+        }
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncTheme);
+    syncTheme();
+
+    // 初始化
+    loadShareData();
+    bindDownload();
+</script>
 </body>
 </html>
