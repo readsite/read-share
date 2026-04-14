@@ -52,7 +52,7 @@
             width: 100%;
             min-height: 100vh;
             overflow-x: hidden;
-            overflow-y: auto;    /* 页面整体滚动，卡片不再内滚动 */
+            overflow-y: auto;
             text-align: left;
         }
 
@@ -62,7 +62,6 @@
             font-display: swap;
         }
 
-        /* 隐藏所有滚动条但保留功能（可选） */
         ::-webkit-scrollbar {
             width: 4px;
             height: 0;
@@ -72,26 +71,49 @@
             border-radius: 4px;
         }
 
-        /* ========== 卡片容器 ========== */
+        /* ========== 卡片容器：flex 列布局，保证页脚自然贴底/滚动 ========== */
         .card-container {
             display: flex;
             flex-direction: column;
             min-height: 100vh;
             width: 100%;
             background-color: var(--white);
-            padding-bottom: 1rem;
+            padding-bottom: 0;
         }
 
+        /* 普通模式：页脚自动贴底（短内容时） */
+        .card-container .app-download-bar {
+            margin-top: auto;
+        }
+
+        /* 音乐卡片垂直居中专用模式（仅当只有音乐卡片时生效） */
+        .card-container.music-card-only {
+            /* 覆盖掉可能的 justify-content 干扰，采用 flex 列自然流 */
+            justify-content: flex-start;
+        }
+        .card-container.music-card-only .music-card-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+        /* 纯音乐模式下，页脚不再依赖 margin-top:auto (因为音乐卡片占满剩余空间，页脚自动沉底) */
+        .card-container.music-card-only .app-download-bar {
+            margin-top: 0;
+            flex-shrink: 0;
+        }
+
+        /* 卡片基础样式 */
         .card {
             background-color: var(--white);
             width: 100%;
-            padding: 0.5rem 1rem;      /* 减小左右内边距，更紧凑 */
+            padding: 0.5rem 1rem;
             box-sizing: border-box;
             border-radius: 0 !important;
             text-align: left;
         }
 
-        /* 卡片之间间距缩小 */
         .sentence-card-wrapper,
         .article-card-wrapper {
             margin-top: 0.5rem;
@@ -100,30 +122,22 @@
             margin-top: 0.5rem;
         }
 
-        .card-container.music-card-only {
-            justify-content: center;
-        }
-        .card-container.music-card-only .music-card-wrapper {
-            flex: 0 0 auto;
-            width: 100%;
-        }
-
-        /* 重要：覆盖卡片内部滚动，全部由 body 滚动，文章也使用自然撑开（无需内部滚动） */
+        /* 完全禁用卡片内部滚动，所有滚动由 body 处理 */
         .card .card-inner {
             overflow-y: visible !important;
             background-color: var(--white);
         }
 
-        /* ---------- 音乐卡片（修复重叠 + 紧凑间距） ---------- */
+        /* ---------- 音乐卡片（完美居中版本 + 紧凑） ---------- */
         #album-box {
-            margin-bottom: 0.75rem;      /* 减小下边距，避免与进度条重叠 */
+            margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .album-image {
             position: relative;
-            width: 12rem;                /* 稍缩小封面，视觉舒适 */
+            width: 12rem;
             height: 12rem;
             border-radius: 50%;
             overflow: visible;
@@ -148,7 +162,7 @@
         .player-control-wrapper {
             position: relative;
             height: 3.5rem;
-            margin-top: 0.25rem;        /* 减少上边距，不与封面重叠 */
+            margin-top: 0.25rem;
         }
         .progress-bar {
             position: absolute;
@@ -195,7 +209,7 @@
             flex-shrink: 0;
         }
         .play-pause-icon i {
-            font-size: 2rem;           /* 稍微缩小图标 */
+            font-size: 2rem;
             line-height: 1;
             color: var(--gray-6);
         }
@@ -221,7 +235,7 @@
         .play-pause-icon i.play-icon,
         .play-pause-icon i.pause-icon { display: none; }
 
-        /* ---------- 句子卡片：紧凑、无内部滚动 ---------- */
+        /* ---------- 句子卡片 ---------- */
         .sentence-image {
             width: 100%;
             margin-bottom: 1rem;
@@ -256,7 +270,7 @@
             color: var(--gray-4);
         }
 
-        /* ---------- 文章卡片：自然滚动（body滚动），内容截断样式 ---------- */
+        /* ---------- 文章卡片：自然滚动，内容优雅 ---------- */
         .bg-img {
             width: 100%;
             margin-bottom: 1rem;
@@ -296,31 +310,25 @@
             text-align: justify;
             color: var(--gray-5);
         }
-        /* 全文展开按钮样式 */
-        .read-more-btn {
+        /* “查看余下全文”提示样式：纯静态，不可点击 */
+        .read-more-static {
             display: inline-block;
             margin-top: 12px;
             color: var(--gray-5);
             background: var(--gray-1);
             padding: 4px 12px;
             border-radius: 20px;
-            font-size: 0.8rem;
-            cursor: pointer;
+            font-size: 0.75rem;
             text-align: center;
-            border: none;
+            opacity: 0.75;
+            letter-spacing: 0.3px;
+            cursor: default;
+            pointer-events: none;
             font-family: inherit;
-            transition: background 0.2s;
-        }
-        .read-more-btn:active {
-            background: var(--gray-2);
-        }
-        .full-content-hidden {
-            display: none;
         }
 
-        /* ---------- 底部下载页脚 ---------- */
+        /* ---------- 底部下载页脚（始终位于父容器底部，不遮挡内容） ---------- */
         .app-download-bar {
-            margin-top: 1.5rem;
             background: var(--white);
             border-top: 1px solid var(--gray-0);
             border-bottom: 1px solid var(--gray-0);
@@ -388,7 +396,7 @@
         /* loading & error */
         .loading-state, .error-state {
             text-align: center;
-            padding: 3rem 1.5rem;
+            padding: 1rem;
             color: var(--gray-4);
         }
         .error-state { color: #e5484d; }
@@ -403,6 +411,11 @@
         }
         i:not(.loading-state i) {
             animation: none !important;
+        }
+        /* 文章内容排版 */
+        .article p, .article-text-full, .article-truncated {
+            line-height: 1.6;
+            word-break: break-word;
         }
     </style>
 </head>
@@ -427,10 +440,12 @@
                 if (m === '<') return '&lt;';
                 if (m === '>') return '&gt;';
                 return m;
+            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+                return c;
             });
         }
 
-        // 音乐卡片渲染（紧凑版）
+        // 音乐卡片渲染（紧凑，垂直居中配合父容器flex逻辑）
         function renderMusicCard(music) {
             if (!music || !music.title) return '';
             const coverUrl = music.cover?.trim() || '';
@@ -482,41 +497,29 @@
             `;
         }
 
-        // 文章卡片渲染（支持内容截断，超过800字显示“查看余下全文”）
-        function renderArticleCard(article, fullContentRaw) {
+        // 文章卡片渲染（只保留“查看余下全文”静态提示，无任何点击展开行为）
+        function renderArticleCard(article) {
             if (!article?.title) return '';
             const imgHtml = article.image 
                 ? `<div class="bg-img"><img src="${escapeHtml(article.image)}" alt="文章配图" onerror="this.style.display='none';this.parentElement.style.display='none'"></div>` 
                 : '';
-            // 原始内容（已转义但保留HTML格式）
             const rawContent = article.content || '';
             const isLong = rawContent.length > 800;
-            let truncatedHtml = '';
-            let fullHtml = '';
+            let contentHtml = '';
+            
             if (isLong) {
                 const truncatedText = rawContent.slice(0, 800);
-                // 保证截断位置完整单词/汉字，避免乱码，简单slice即可
-                truncatedHtml = escapeHtml(truncatedText) + '…';
-                fullHtml = escapeHtml(rawContent).replace(/\n/g, '<br>');
-            } else {
-                truncatedHtml = escapeHtml(rawContent).replace(/\n/g, '<br>');
-                fullHtml = truncatedHtml;
-            }
-            
-            // 存储完整内容用于后续展开
-            const uniqueId = 'article-content-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
-            
-            let contentHtml = '';
-            if (isLong) {
+                const escapedTruncated = escapeHtml(truncatedText).replace(/\n/g, '<br>');
+                // 纯静态提示，不可点击，无展开逻辑
                 contentHtml = `
-                    <div id="${uniqueId}" class="article-text-wrapper">
-                        <div class="article-truncated">${truncatedHtml.replace(/\n/g, '<br>')}</div>
-                        <div class="article-full" style="display:none;">${fullHtml}</div>
-                        <button class="read-more-btn" data-target="${uniqueId}">查看余下全文</button>
+                    <div class="article-text-wrapper">
+                        <div class="article-truncated">${escapedTruncated}…</div>
+                        <span class="read-more-static">查看余下全文</span>
                     </div>
                 `;
             } else {
-                contentHtml = `<div class="article-text-full">${truncatedHtml}</div>`;
+                const fullEscaped = escapeHtml(rawContent).replace(/\n/g, '<br>');
+                contentHtml = `<div class="article-text-full">${fullEscaped}</div>`;
             }
             
             return `
@@ -533,26 +536,6 @@
                     </div>
                 </div>
             `;
-        }
-
-        // 绑定文章“查看全文”事件（委托）
-        function bindArticleReadMore() {
-            document.body.addEventListener('click', (e) => {
-                const btn = e.target.closest('.read-more-btn');
-                if (!btn) return;
-                const targetId = btn.getAttribute('data-target');
-                if (!targetId) return;
-                const wrapper = document.getElementById(targetId);
-                if (!wrapper) return;
-                const truncatedDiv = wrapper.querySelector('.article-truncated');
-                const fullDiv = wrapper.querySelector('.article-full');
-                if (truncatedDiv && fullDiv && fullDiv.style.display === 'none') {
-                    truncatedDiv.style.display = 'none';
-                    fullDiv.style.display = 'block';
-                    btn.style.display = 'none';   // 隐藏按钮，或可显示“收起”，需求无收起，简化
-                }
-                e.preventDefault();
-            });
         }
 
         // 音乐播放器初始化（保持原有功能）
@@ -616,10 +599,7 @@
             setTimeout(() => div.remove(), 1800);
         }
 
-        // 已移除图片预览功能 —— 不再绑定任何预览事件
-        // 原 attachImagePreview 函数彻底删除，避免图片点击放大
-
-        // 渲染页面主逻辑
+        // 渲染页面主逻辑（实现页脚固定底部 + 音乐垂直居中，文章/句子正常流）
         function renderPageContent(data) {
             let cardsHtml = '';
             let hasMusic = false, hasSentence = false, hasArticle = false;
@@ -631,17 +611,20 @@
                 cardsHtml = renderSentenceCard(data.sentence);
                 hasSentence = true;
             } else if (type === 'article' && data.article?.title) {
-                cardsHtml = renderArticleCard(data.article, data.article.content);
+                cardsHtml = renderArticleCard(data.article);
                 hasArticle = true;
             } else {
                 if (data.music?.title) { cardsHtml += renderMusicCard(data.music); hasMusic = true; }
                 if (data.sentence?.text) { cardsHtml += renderSentenceCard(data.sentence); hasSentence = true; }
-                if (data.article?.title) { cardsHtml += renderArticleCard(data.article, data.article.content); hasArticle = true; }
+                if (data.article?.title) { cardsHtml += renderArticleCard(data.article); hasArticle = true; }
                 if (!cardsHtml) cardsHtml = '<div class="error-state">暂无任何内容可分享</div>';
             }
 
+            // 判断是否只有音乐卡片（没有任何句子或文章）
             const onlyMusic = hasMusic && !hasSentence && !hasArticle;
+            // 根据是否纯音乐应用不同容器类
             const containerClass = onlyMusic ? 'card-container music-card-only' : 'card-container';
+            
             const downloadBar = `
                 <div class="app-download-bar">
                     <div class="download-info">
@@ -651,12 +634,14 @@
                     <button class="download-btn" id="appDownloadBtn">下载 App</button>
                 </div>
             `;
+            // 页脚永远作为子容器放置于卡片容器内，利用flex布局自动置底（不遮挡）
             const fullHtml = `<div class="${containerClass}">${cardsHtml}${downloadBar}</div>`;
             const app = document.getElementById('app');
             app.innerHTML = fullHtml;
+            
             if (hasMusic) initMusicPlayer();
-            // 绑定文章展开按钮事件
-            if (hasArticle) bindArticleReadMore();
+            
+            // 下载按钮事件绑定
             const downloadBtn = document.getElementById('appDownloadBtn');
             if (downloadBtn) downloadBtn.addEventListener('click', () => window.location.href = 'https://read-download.solitudenook.top');
         }
@@ -691,20 +676,19 @@
         updateDarkClass();
         mediaQuery.addEventListener('change', updateDarkClass);
         
-        // 额外样式修正：确保句子和音乐卡片不会出现内部滚动条（已在全局覆盖）
-        // 并修正文章内容过宽时的边距
+        // 额外样式微调，确保文章内容过宽时正常断行
         const styleFix = document.createElement('style');
         styleFix.textContent = `
-            .article p {
+            .article p, .article-text-full, .article-truncated {
                 word-break: break-word;
+                white-space: normal;
             }
-            .article-full, .article-truncated {
-                line-height: 1.5;
+            .read-more-static {
+                user-select: none;
             }
-            .read-more-btn {
-                background: var(--gray-1);
-                border: none;
-                cursor: pointer;
+            .music-card-only .music-card-wrapper .card {
+                width: 100%;
+                max-width: 100%;
             }
         `;
         document.head.appendChild(styleFix);
