@@ -677,7 +677,7 @@
         
         const imgHtml = article.image ? `<div class="bg-img"><img id="shareArticleImg" src="${escapeHtml(article.image)}" alt="文章配图" onerror="this.style.display='none';this.parentElement.style.display='none'"></div>` : '';
         
-        const hintHtml = needTruncate ? `<div class="full-content-hint">📖 下载APP查看全文</div>` : '';
+        const hintHtml = needTruncate ? `<div class="full-content-hint">下载APP查看全文</div>` : '';
         
         return `
             <div class="card" data-type="article">
