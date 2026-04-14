@@ -68,7 +68,6 @@
         }
         ::-webkit-scrollbar-thumb {
             background: var(--gray-3);
-            border-radius: 4px;
         }
 
         /* ========== 卡片容器：flex 列布局，保证页脚自然贴底/滚动 ========== */
@@ -88,7 +87,6 @@
 
         /* 音乐卡片垂直居中专用模式（仅当只有音乐卡片时生效） */
         .card-container.music-card-only {
-            /* 覆盖掉可能的 justify-content 干扰，采用 flex 列自然流 */
             justify-content: flex-start;
         }
         .card-container.music-card-only .music-card-wrapper {
@@ -98,7 +96,6 @@
             justify-content: center;
             width: 100%;
         }
-        /* 纯音乐模式下，页脚不再依赖 margin-top:auto (因为音乐卡片占满剩余空间，页脚自动沉底) */
         .card-container.music-card-only .app-download-bar {
             margin-top: 0;
             flex-shrink: 0;
@@ -110,7 +107,6 @@
             width: 100%;
             padding: 0.5rem 1rem;
             box-sizing: border-box;
-            border-radius: 0 !important;
             text-align: left;
         }
 
@@ -317,7 +313,6 @@
             color: var(--gray-5);
             background: var(--gray-1);
             padding: 4px 12px;
-            border-radius: 20px;
             font-size: 0.75rem;
             text-align: center;
             opacity: 0.75;
@@ -339,7 +334,6 @@
             flex-wrap: wrap;
             gap: 0.5rem;
             width: 100%;
-            border-radius: 0 !important;
             flex-shrink: 0;
         }
         .download-info {
@@ -352,12 +346,15 @@
             width: 2.2rem;
             height: 2.2rem;
             background: var(--gray-7);
-            border-radius: 0.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-size: 1.1rem;
+        }
+        .appicon{
+          width: 52px;
+          height: 52px;
         }
         .app-text h4 {
             font-size: 0.95rem;
@@ -377,7 +374,6 @@
             font-weight: 500;
             cursor: pointer;
             font-family: inherit;
-            border-radius: 30px;
         }
         .download-btn:active {
             opacity: 0.7;
@@ -393,23 +389,17 @@
             }
         }
 
-        /* loading & error */
+        /* 加载和错误状态（无旋转动画） */
         .loading-state, .error-state {
             text-align: center;
-            padding: 1rem;
+            padding: 2rem 1rem;
             color: var(--gray-4);
         }
-        .error-state { color: #e5484d; }
-        .loading-state i {
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            font-size: 2rem;
+        .error-state { 
+            color: #e5484d; 
         }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        i:not(.loading-state i) {
+        /* 移除所有旋转动画 */
+        i, .ri-loader-4-line {
             animation: none !important;
         }
         /* 文章内容排版 */
@@ -421,8 +411,7 @@
 </head>
 <body>
     <div id="app" class="loading-state">
-        <i class="ri-loader-4-line"></i>
-        <p>正在加载内容...</p>
+        <p>加载中...</p>
     </div>
 
     <script>
@@ -510,11 +499,10 @@
             if (isLong) {
                 const truncatedText = rawContent.slice(0, 800);
                 const escapedTruncated = escapeHtml(truncatedText).replace(/\n/g, '<br>');
-                // 纯静态提示，不可点击，无展开逻辑
                 contentHtml = `
                     <div class="article-text-wrapper">
                         <div class="article-truncated">${escapedTruncated}…</div>
-                        <span class="read-more-static">查看余下全文</span>
+                        <span class="read-more-static">下载App查看余下全文</span>
                     </div>
                 `;
             } else {
@@ -594,7 +582,7 @@
             const div = document.createElement('div');
             div.className = 'share-toast';
             div.innerText = msg;
-            div.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;padding:6px 14px;border-radius:20px;font-size:13px;z-index:9999;backdrop-filter:blur(4px);';
+            div.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;padding:6px 14px;font-size:13px;z-index:9999;backdrop-filter:blur(4px);';
             document.body.appendChild(div);
             setTimeout(() => div.remove(), 1800);
         }
@@ -622,26 +610,23 @@
 
             // 判断是否只有音乐卡片（没有任何句子或文章）
             const onlyMusic = hasMusic && !hasSentence && !hasArticle;
-            // 根据是否纯音乐应用不同容器类
             const containerClass = onlyMusic ? 'card-container music-card-only' : 'card-container';
             
             const downloadBar = `
                 <div class="app-download-bar">
                     <div class="download-info">
-                        <div class="app-icon"><img src="icon-192.png"></div>
+                        <div class="app-icon"><img class="appicon" src="icon-192.png"></div>
                         <div class="app-text"><h4>Read.</h4><p>安于闲 · 乐于独 · 每日精选</p></div>
                     </div>
                     <button class="download-btn" id="appDownloadBtn">下载 App</button>
                 </div>
             `;
-            // 页脚永远作为子容器放置于卡片容器内，利用flex布局自动置底（不遮挡）
             const fullHtml = `<div class="${containerClass}">${cardsHtml}${downloadBar}</div>`;
             const app = document.getElementById('app');
             app.innerHTML = fullHtml;
             
             if (hasMusic) initMusicPlayer();
             
-            // 下载按钮事件绑定
             const downloadBtn = document.getElementById('appDownloadBtn');
             if (downloadBtn) downloadBtn.addEventListener('click', () => window.location.href = 'https://read-download.solitudenook.top');
         }
