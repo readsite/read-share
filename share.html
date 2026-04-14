@@ -6,7 +6,7 @@
     <title>Read. 分享 · 安于闲，乐于独</title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
     <style>
-        /* ========== 完全复刻 index.html 的全局样式 ========== */
+        /* ========== 全局重置 + 变量 ========== */
         * {
             margin: 0;
             padding: 0;
@@ -52,6 +52,7 @@
             width: 100%;
             min-height: 100vh;
             overflow-x: hidden;
+            overflow-y: auto;    /* 页面整体滚动，卡片不再内滚动 */
             text-align: left;
         }
 
@@ -61,10 +62,14 @@
             font-display: swap;
         }
 
+        /* 隐藏所有滚动条但保留功能（可选） */
         ::-webkit-scrollbar {
-            width: 0;
+            width: 4px;
             height: 0;
-            display: none;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray-3);
+            border-radius: 4px;
         }
 
         /* ========== 卡片容器 ========== */
@@ -74,24 +79,25 @@
             min-height: 100vh;
             width: 100%;
             background-color: var(--white);
+            padding-bottom: 1rem;
         }
 
         .card {
             background-color: var(--white);
             width: 100%;
-            padding: 0.5rem 1.25rem;
+            padding: 0.5rem 1rem;      /* 减小左右内边距，更紧凑 */
             box-sizing: border-box;
             border-radius: 0 !important;
             text-align: left;
         }
 
+        /* 卡片之间间距缩小 */
         .sentence-card-wrapper,
         .article-card-wrapper {
-            margin-top: 1.5rem;
+            margin-top: 0.5rem;
         }
-
         .music-card-wrapper {
-            flex: 0 0 auto;
+            margin-top: 0.5rem;
         }
 
         .card-container.music-card-only {
@@ -102,17 +108,23 @@
             width: 100%;
         }
 
-        /* ---------- 音乐卡片（修复间距） ---------- */
+        /* 重要：覆盖卡片内部滚动，全部由 body 滚动，文章也使用自然撑开（无需内部滚动） */
+        .card .card-inner {
+            overflow-y: visible !important;
+            background-color: var(--white);
+        }
+
+        /* ---------- 音乐卡片（修复重叠 + 紧凑间距） ---------- */
         #album-box {
-            margin-bottom: 1.5rem;  /* 与下方控制区域拉开距离 */
+            margin-bottom: 0.75rem;      /* 减小下边距，避免与进度条重叠 */
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .album-image {
             position: relative;
-            width: 12.5rem;
-            height: 12.5rem;
+            width: 12rem;                /* 稍缩小封面，视觉舒适 */
+            height: 12rem;
             border-radius: 50%;
             overflow: visible;
             background: transparent;
@@ -123,11 +135,7 @@
                         0 0 0 1.25rem var(--album-ring), 0 0 0 1.3125rem var(--album-ring-light),
                         0 0 0 1.5rem var(--album-ring), 0 0 0 1.5625rem var(--album-ring-light),
                         0 0 0 1.75rem var(--album-ring), 0 0 0 1.8125rem var(--album-ring-light),
-                        0 0 0 2rem var(--album-ring), 0 0 0 2.0625rem var(--album-ring-light),
-                        0 0 0 2.25rem var(--album-ring), 0 0 0 2.3125rem var(--album-ring-light),
-                        0 0 0 2.5rem var(--album-ring), 0 0 0 2.5625rem var(--album-ring-light),
-                        0 0 0 2.8125rem var(--album-ring), 0 0 0 2.875rem var(--album-ring-light),
-                        0 0 0 2.90625rem var(--album-ring);
+                        0 0 0 2rem var(--album-ring), 0 0 0 2.0625rem var(--album-ring-light);
         }
         .album-image img {
             width: 100%;
@@ -139,8 +147,8 @@
         }
         .player-control-wrapper {
             position: relative;
-            height: 3.75rem;
-            margin-top: 0.5rem;  /* 确保与上方封面有间距 */
+            height: 3.5rem;
+            margin-top: 0.25rem;        /* 减少上边距，不与封面重叠 */
         }
         .progress-bar {
             position: absolute;
@@ -187,22 +195,21 @@
             flex-shrink: 0;
         }
         .play-pause-icon i {
-            font-size: 2.25rem;
+            font-size: 2rem;           /* 稍微缩小图标 */
             line-height: 1;
             color: var(--gray-6);
-            animation: none !important;
         }
         .track-album {
-            font-size: 1.20rem;
+            font-size: 1.1rem;
             font-weight: 500;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.2rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             color: var(--gray-6);
         }
         .track-singer {
-            font-size: 0.8125rem;
+            font-size: 0.75rem;
             margin: 0;
             white-space: nowrap;
             overflow: hidden;
@@ -214,10 +221,10 @@
         .play-pause-icon i.play-icon,
         .play-pause-icon i.pause-icon { display: none; }
 
-        /* ---------- 句子卡片 ---------- */
+        /* ---------- 句子卡片：紧凑、无内部滚动 ---------- */
         .sentence-image {
             width: 100%;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem;
             position: relative;
             padding-bottom: 56.25%;
             overflow: hidden;
@@ -234,25 +241,25 @@
             object-position: top;
         }
         #sentenceText {
-            margin: 0 0 1.25rem 0;
-            line-height: 1.8;
+            margin: 0 0 0.8rem 0;
+            line-height: 1.7;
             font-size: 1rem;
             color: var(--gray-6);
             text-align: left;
         }
         .from {
             text-align: right;
-            margin-top: 0.625rem;
+            margin-top: 0.4rem;
         }
         .from span {
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             color: var(--gray-4);
         }
 
-        /* ---------- 文章卡片 ---------- */
+        /* ---------- 文章卡片：自然滚动（body滚动），内容截断样式 ---------- */
         .bg-img {
             width: 100%;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             position: relative;
             padding-bottom: 56.25%;
             overflow: hidden;
@@ -273,35 +280,56 @@
             text-align: left;
         }
         .title {
-            font-size: 1.5rem;
-            margin-bottom: 0.375rem;
+            font-size: 1.4rem;
+            margin-bottom: 0.3rem;
             color: var(--gray-6);
         }
         .theauthor {
-            font-size: 0.875rem;
-            margin: 0.625rem 0;
+            font-size: 0.8rem;
+            margin: 0.5rem 0;
             color: var(--gray-4);
         }
         .article p {
-            line-height: 1.4;
-            font-size: 1.05rem;
+            line-height: 1.5;
+            font-size: 1rem;
             font-weight: 500;
             text-align: justify;
             color: var(--gray-5);
         }
+        /* 全文展开按钮样式 */
+        .read-more-btn {
+            display: inline-block;
+            margin-top: 12px;
+            color: var(--gray-5);
+            background: var(--gray-1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-align: center;
+            border: none;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+        .read-more-btn:active {
+            background: var(--gray-2);
+        }
+        .full-content-hidden {
+            display: none;
+        }
 
         /* ---------- 底部下载页脚 ---------- */
         .app-download-bar {
-            margin-top: 2rem;
+            margin-top: 1.5rem;
             background: var(--white);
             border-top: 1px solid var(--gray-0);
             border-bottom: 1px solid var(--gray-0);
-            padding: 0.9rem 1.25rem;
+            padding: 0.7rem 1rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 0.75rem;
+            gap: 0.5rem;
             width: 100%;
             border-radius: 0 !important;
             flex-shrink: 0;
@@ -309,42 +337,39 @@
         .download-info {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.6rem;
             text-align: left;
         }
         .app-icon {
-            width: 2.5rem;
-            height: 2.5rem;
+            width: 2.2rem;
+            height: 2.2rem;
             background: var(--gray-7);
             border-radius: 0.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 1.3rem;
-        }
-        .app-icon i {
-            animation: none !important;
+            font-size: 1.1rem;
         }
         .app-text h4 {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             color: var(--gray-6);
         }
         .app-text p {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--gray-4);
         }
         .download-btn {
             background: var(--gray-7);
             color: white;
             border: none;
-            padding: 0.5rem 1.2rem;
-            font-size: 0.85rem;
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
             font-weight: 500;
             cursor: pointer;
             font-family: inherit;
-            border-radius: 0;
+            border-radius: 30px;
         }
         .download-btn:active {
             opacity: 0.7;
@@ -405,6 +430,7 @@
             });
         }
 
+        // 音乐卡片渲染（紧凑版）
         function renderMusicCard(music) {
             if (!music || !music.title) return '';
             const coverUrl = music.cover?.trim() || '';
@@ -437,6 +463,7 @@
             `;
         }
 
+        // 句子卡片渲染（无内部滚动）
         function renderSentenceCard(sentence) {
             if (!sentence?.text) return '';
             const imgHtml = sentence.image 
@@ -455,20 +482,52 @@
             `;
         }
 
-        function renderArticleCard(article) {
+        // 文章卡片渲染（支持内容截断，超过800字显示“查看余下全文”）
+        function renderArticleCard(article, fullContentRaw) {
             if (!article?.title) return '';
             const imgHtml = article.image 
                 ? `<div class="bg-img"><img src="${escapeHtml(article.image)}" alt="文章配图" onerror="this.style.display='none';this.parentElement.style.display='none'"></div>` 
                 : '';
+            // 原始内容（已转义但保留HTML格式）
+            const rawContent = article.content || '';
+            const isLong = rawContent.length > 800;
+            let truncatedHtml = '';
+            let fullHtml = '';
+            if (isLong) {
+                const truncatedText = rawContent.slice(0, 800);
+                // 保证截断位置完整单词/汉字，避免乱码，简单slice即可
+                truncatedHtml = escapeHtml(truncatedText) + '…';
+                fullHtml = escapeHtml(rawContent).replace(/\n/g, '<br>');
+            } else {
+                truncatedHtml = escapeHtml(rawContent).replace(/\n/g, '<br>');
+                fullHtml = truncatedHtml;
+            }
+            
+            // 存储完整内容用于后续展开
+            const uniqueId = 'article-content-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+            
+            let contentHtml = '';
+            if (isLong) {
+                contentHtml = `
+                    <div id="${uniqueId}" class="article-text-wrapper">
+                        <div class="article-truncated">${truncatedHtml.replace(/\n/g, '<br>')}</div>
+                        <div class="article-full" style="display:none;">${fullHtml}</div>
+                        <button class="read-more-btn" data-target="${uniqueId}">查看余下全文</button>
+                    </div>
+                `;
+            } else {
+                contentHtml = `<div class="article-text-full">${truncatedHtml}</div>`;
+            }
+            
             return `
                 <div class="article-card-wrapper">
-                    <div class="card" data-type="article">
+                    <div class="card" data-type="article" id="article-share-card">
                         <div class="card-inner">
                             ${imgHtml}
                             <div class="article-info">
                                 <div class="title">${escapeHtml(article.title)}</div>
                                 <div class="theauthor">文 / ${escapeHtml(article.author || '佚名')}</div>
-                                <div class="article"><p>${escapeHtml(article.content || '').replace(/\n/g, '<br>')}</p></div>
+                                <div class="article">${contentHtml}</div>
                             </div>
                         </div>
                     </div>
@@ -476,6 +535,27 @@
             `;
         }
 
+        // 绑定文章“查看全文”事件（委托）
+        function bindArticleReadMore() {
+            document.body.addEventListener('click', (e) => {
+                const btn = e.target.closest('.read-more-btn');
+                if (!btn) return;
+                const targetId = btn.getAttribute('data-target');
+                if (!targetId) return;
+                const wrapper = document.getElementById(targetId);
+                if (!wrapper) return;
+                const truncatedDiv = wrapper.querySelector('.article-truncated');
+                const fullDiv = wrapper.querySelector('.article-full');
+                if (truncatedDiv && fullDiv && fullDiv.style.display === 'none') {
+                    truncatedDiv.style.display = 'none';
+                    fullDiv.style.display = 'block';
+                    btn.style.display = 'none';   // 隐藏按钮，或可显示“收起”，需求无收起，简化
+                }
+                e.preventDefault();
+            });
+        }
+
+        // 音乐播放器初始化（保持原有功能）
         function initMusicPlayer() {
             const musicCard = document.getElementById('music-share-card');
             if (!musicCard) return;
@@ -536,30 +616,10 @@
             setTimeout(() => div.remove(), 1800);
         }
 
-        function attachImagePreview() {
-            const images = document.querySelectorAll('.album-image img, .sentence-image img, .bg-img img');
-            images.forEach(img => {
-                if (img.getAttribute('data-preview')) return;
-                img.setAttribute('data-preview', 'true');
-                img.style.cursor = 'pointer';
-                img.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const src = img.getAttribute('src');
-                    if (!src) return;
-                    const overlay = document.createElement('div');
-                    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;cursor:pointer;';
-                    const previewImg = document.createElement('img');
-                    previewImg.src = src;
-                    previewImg.style.maxWidth = '90%';
-                    previewImg.style.maxHeight = '80%';
-                    previewImg.style.objectFit = 'contain';
-                    overlay.appendChild(previewImg);
-                    overlay.addEventListener('click', () => overlay.remove());
-                    document.body.appendChild(overlay);
-                });
-            });
-        }
+        // 已移除图片预览功能 —— 不再绑定任何预览事件
+        // 原 attachImagePreview 函数彻底删除，避免图片点击放大
 
+        // 渲染页面主逻辑
         function renderPageContent(data) {
             let cardsHtml = '';
             let hasMusic = false, hasSentence = false, hasArticle = false;
@@ -571,12 +631,12 @@
                 cardsHtml = renderSentenceCard(data.sentence);
                 hasSentence = true;
             } else if (type === 'article' && data.article?.title) {
-                cardsHtml = renderArticleCard(data.article);
+                cardsHtml = renderArticleCard(data.article, data.article.content);
                 hasArticle = true;
             } else {
                 if (data.music?.title) { cardsHtml += renderMusicCard(data.music); hasMusic = true; }
                 if (data.sentence?.text) { cardsHtml += renderSentenceCard(data.sentence); hasSentence = true; }
-                if (data.article?.title) { cardsHtml += renderArticleCard(data.article); hasArticle = true; }
+                if (data.article?.title) { cardsHtml += renderArticleCard(data.article, data.article.content); hasArticle = true; }
                 if (!cardsHtml) cardsHtml = '<div class="error-state">暂无任何内容可分享</div>';
             }
 
@@ -595,15 +655,16 @@
             const app = document.getElementById('app');
             app.innerHTML = fullHtml;
             if (hasMusic) initMusicPlayer();
+            // 绑定文章展开按钮事件
+            if (hasArticle) bindArticleReadMore();
             const downloadBtn = document.getElementById('appDownloadBtn');
-            if (downloadBtn) downloadBtn.addEventListener('click', () => window.location.href = 'https://solitudenook.top');
-            attachImagePreview();
+            if (downloadBtn) downloadBtn.addEventListener('click', () => window.location.href = 'https://read-download.solitudenook.top');
         }
 
         async function loadShareContent() {
             const app = document.getElementById('app');
             if (!date) {
-                app.innerHTML = '<div class="error-state">❌ 缺少日期参数，分享链接无效</div>';
+                app.innerHTML = '<div class="error-state">缺少日期参数，分享链接无效</div>';
                 return;
             }
             try {
@@ -621,6 +682,7 @@
 
         loadShareContent();
 
+        // 暗色模式跟随系统
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         const updateDarkClass = () => {
             if (mediaQuery.matches) document.body.classList.add('dark-mode');
@@ -628,6 +690,24 @@
         };
         updateDarkClass();
         mediaQuery.addEventListener('change', updateDarkClass);
+        
+        // 额外样式修正：确保句子和音乐卡片不会出现内部滚动条（已在全局覆盖）
+        // 并修正文章内容过宽时的边距
+        const styleFix = document.createElement('style');
+        styleFix.textContent = `
+            .article p {
+                word-break: break-word;
+            }
+            .article-full, .article-truncated {
+                line-height: 1.5;
+            }
+            .read-more-btn {
+                background: var(--gray-1);
+                border: none;
+                cursor: pointer;
+            }
+        `;
+        document.head.appendChild(styleFix);
     </script>
 </body>
 </html>
