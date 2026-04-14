@@ -56,7 +56,7 @@
         }
 
         body {
-            font-family: 'fangzhengsongti', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family:'SimSun','宋体',-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--white);
             display: flex;
             flex-direction: column;
@@ -68,11 +68,6 @@
             position: fixed;
             top: 0;
             left: 0;
-        }
-
-        @font-face {
-            font-family: 'fangzhengsongti';
-            src: url('https://solitudenook.top/font/fangzhengsongti.ttf') format('truetype');
             font-display: swap;
         }
 
@@ -162,7 +157,7 @@
                         0 0 0 2.8125rem var(--album-ring), 0 0 0 2.875rem var(--album-ring-light),
                         0 0 0 2.90625rem var(--album-ring);
         }
-        /* 旋转动画 (与 index 主站完全一致) */
+        /* 旋转动画 (与 index 主站完全一致) — 通过 animation-play-state 控制启停，不丢失角度 */
         .album-image.rotating {
             animation: rotate 20s linear infinite;
         }
@@ -471,7 +466,8 @@
     const type = urlParams.get('type');   // 'music', 'sentence', 'article'
     const API_BASE = 'https://solitudenook.top';
 
-    let currentAudio = null;
+    let currentAudio = null;         // 当前音频实例
+    let currentRotatingElement = null; // 当前音乐卡片的 .album-image 元素
 
     function escapeHtml(str) {
         if (!str) return '';
@@ -504,44 +500,48 @@
         }
     }
 
-    // 截取文章内容 (前800字)
-    function truncateArticleContent(content, limit = 800) {
+    // 截取文章内容 (前1000字)
+    function truncateArticleContent(content, limit = 1000) {
         if (!content) return { text: '', needTruncate: false };
         const raw = content;
         if (raw.length <= limit) {
             return { text: raw, needTruncate: false };
         }
-        // 截取前 limit 个字符，并添加省略号
         let truncated = raw.slice(0, limit);
-        // 保证截取后不截断半个字符（JS原生slice安全）
         return { text: truncated + '...', needTruncate: true };
     }
 
-    // ========== 音乐播放器初始化 (支持专辑封面旋转，与 index 主站行为一致) ==========
+    // ========== 音乐播放器核心 (修复旋转重置问题：始终保留 .rotating 类，通过 animationPlayState 控制启停) ==========
     function initMusicPlayer(musicSrc, title, artist) {
         if (!musicSrc) return;
+        // 清理旧播放器
         if (currentAudio) {
             currentAudio.pause();
             currentAudio = null;
         }
+        // 获取 DOM 元素
+        const progressFill = document.getElementById('shareProgressFill');
+        const playPauseBtn = document.getElementById('sharePlayPauseBtn');
+        const albumImageContainer = document.querySelector('.album-image');
+        
+        if (!progressFill || !playPauseBtn || !albumImageContainer) {
+            console.warn('音乐播放器所需 DOM 未就绪');
+            return;
+        }
+        
+        // 重要: 确保封面容器始终带有 .rotating 类，但初始动画暂停 (与主站逻辑完全一致)
+        if (!albumImageContainer.classList.contains('rotating')) {
+            albumImageContainer.classList.add('rotating');
+        }
+        // 强制设置动画暂停状态，避免初次加载自动旋转
+        albumImageContainer.style.animationPlayState = 'paused';
+        currentRotatingElement = albumImageContainer;
+        
         const audio = new Audio(musicSrc);
         audio.preload = 'metadata';
         currentAudio = audio;
-        const progressFill = document.getElementById('shareProgressFill');
-        const playPauseBtn = document.getElementById('sharePlayPauseBtn');
-        // 获取封面旋转元素
-        const albumImageContainer = document.querySelector('.album-image');
         
-        if (!progressFill || !playPauseBtn) return;
-        
-        // 旋转控制函数
-        const startRotation = () => {
-            if (albumImageContainer) albumImageContainer.classList.add('rotating');
-        };
-        const stopRotation = () => {
-            if (albumImageContainer) albumImageContainer.classList.remove('rotating');
-        };
-        
+        // 进度更新
         const updateProgress = () => {
             if (audio.duration && isFinite(audio.duration)) {
                 progressFill.style.width = (audio.currentTime / audio.duration) * 100 + '%';
@@ -553,26 +553,48 @@
         audio.addEventListener('timeupdate', updateProgress);
         audio.addEventListener('loadedmetadata', updateProgress);
         
-        // 播放时开始旋转
-        audio.addEventListener('play', () => {
-            startRotation();
-        });
-        // 暂停时停止旋转
-        audio.addEventListener('pause', () => {
-            stopRotation();
-        });
-        audio.addEventListener('ended', () => {
-            stopRotation();
-            playPauseBtn.classList.remove('play');
-            playPauseBtn.classList.add('pause');
+        // 播放时：动画继续运行
+        const onPlay = () => {
+            if (albumImageContainer) {
+                albumImageContainer.style.animationPlayState = 'running';
+            }
+        };
+        // 暂停时：动画暂停 (保持当前旋转角度，不归零)
+        const onPause = () => {
+            if (albumImageContainer) {
+                albumImageContainer.style.animationPlayState = 'paused';
+            }
+        };
+        // 播放结束：暂停动画，进度归零，切换按钮样式
+        const onEnded = () => {
+            if (albumImageContainer) {
+                albumImageContainer.style.animationPlayState = 'paused';
+            }
             progressFill.style.width = '0%';
             audio.currentTime = 0;
-        });
+            // 更新按钮样式为暂停状态（显示播放图标）
+            if (playPauseBtn) {
+                playPauseBtn.classList.remove('play');
+                playPauseBtn.classList.add('pause');
+            }
+        };
         
+        audio.addEventListener('play', onPlay);
+        audio.addEventListener('pause', onPause);
+        audio.addEventListener('ended', onEnded);
+        
+        // 点击播放/暂停切换
         const togglePlay = (e) => {
             e.stopPropagation();
             if (audio.paused) {
-                audio.play().catch(() => showToast('无法播放，请检查网络'));
+                audio.play().catch(err => {
+                    console.warn('播放失败', err);
+                    showToast('无法播放，请检查网络');
+                    // 播放失败时确保动画保持暂停，按钮状态恢复
+                    if (albumImageContainer) albumImageContainer.style.animationPlayState = 'paused';
+                    playPauseBtn.classList.remove('play');
+                    playPauseBtn.classList.add('pause');
+                });
                 playPauseBtn.classList.remove('pause');
                 playPauseBtn.classList.add('play');
             } else {
@@ -581,14 +603,25 @@
                 playPauseBtn.classList.add('pause');
             }
         };
+        
+        // 移除旧监听避免重复绑定
         playPauseBtn.removeEventListener('click', togglePlay);
         playPauseBtn.addEventListener('click', togglePlay);
         
-        // 确保初始化时停止旋转状态
-        stopRotation();
+        // 额外: 如果音频因加载问题无法播放，确保旋转停止
+        audio.addEventListener('error', () => {
+            if (albumImageContainer) albumImageContainer.style.animationPlayState = 'paused';
+            playPauseBtn.classList.remove('play');
+            playPauseBtn.classList.add('pause');
+        });
+        
+        // 初始化按钮状态和进度条
+        playPauseBtn.classList.remove('play');
+        playPauseBtn.classList.add('pause');
+        progressFill.style.width = '0%';
     }
 
-    // ========== 卡片渲染：音乐、句子、文章（文章支持截断前800字+下载提示） ==========
+    // ========== 卡片渲染 (音乐卡片确保封面容器具备正确的旋转类初始状态) ==========
     function renderMusicCard(music) {
         if (!music || !music.title) return '';
         const coverUrl = music.cover?.trim() || '';
@@ -636,19 +669,15 @@
 
     function renderArticleCard(article) {
         if (!article?.title) return '';
-        // 原始纯文本内容
         const rawContent = article.content || '';
-        // 截取前800字逻辑
-        const { text: truncatedText, needTruncate } = truncateArticleContent(rawContent, 800);
-        // 对截取后的文本进行转义和换行处理
+        const { text: truncatedText, needTruncate } = truncateArticleContent(rawContent, 1000);
         const contentToDisplay = needTruncate ? truncatedText : rawContent;
         const escapedContent = escapeHtml(contentToDisplay);
         const contentWithBreaks = escapedContent.replace(/\n/g, '<br>');
         
         const imgHtml = article.image ? `<div class="bg-img"><img id="shareArticleImg" src="${escapeHtml(article.image)}" alt="文章配图" onerror="this.style.display='none';this.parentElement.style.display='none'"></div>` : '';
         
-        // 如果需要截断，则在文章内容末尾追加提示条
-        const hintHtml = needTruncate ? `<div class="full-content-hint">📖 下载APP查看全内容</div>` : '';
+        const hintHtml = needTruncate ? `<div class="full-content-hint">📖 下载APP查看全文</div>` : '';
         
         return `
             <div class="card" data-type="article">
@@ -685,7 +714,7 @@
             html = renderArticleCard(data.article);
             isPureMusicMode = false;
         } else {
-            // 兼容旧链接或未传type: 展示全部卡片，顺序与 index 一致
+            // 兼容旧链接或未传type: 展示全部卡片
             if (data.music?.title) { 
                 html += renderMusicCard(data.music); 
                 hasMusic = true; 
@@ -704,7 +733,10 @@
 
         // 音乐播放器启动 (只有真正存在音乐卡片时才初始化)
         if (hasMusic && data.music?.src) {
-            initMusicPlayer(data.music.src, data.music.title, data.music.artist);
+            // 由于卡片重新渲染，需要确保 DOM 完全挂载后再初始化播放器
+            setTimeout(() => {
+                initMusicPlayer(data.music.src, data.music.title, data.music.artist);
+            }, 20);
         }
         
         // 根据是否为纯音乐分享模式 设置垂直居中类
