@@ -126,39 +126,43 @@
 
         /* ---------- 音乐卡片（完美居中版本 + 紧凑） ---------- */
         #album-box {
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
         }
-        .album-image {
-            position: relative;
-            width: 12rem;
-            height: 12rem;
-            border-radius: 50%;
-            overflow: visible;
-            background: transparent;
-            box-shadow: 0 0 0 0.25rem var(--album-ring), 0 0 0 0.3125rem var(--album-ring-light),
-                        0 0 0 0.5rem var(--album-ring), 0 0 0 0.5625rem var(--album-ring-light),
-                        0 0 0 0.75rem var(--album-ring), 0 0 0 0.8125rem var(--album-ring-light),
-                        0 0 0 1rem var(--album-ring), 0 0 0 1.0625rem var(--album-ring-light),
-                        0 0 0 1.25rem var(--album-ring), 0 0 0 1.3125rem var(--album-ring-light),
-                        0 0 0 1.5rem var(--album-ring), 0 0 0 1.5625rem var(--album-ring-light),
-                        0 0 0 1.75rem var(--album-ring), 0 0 0 1.8125rem var(--album-ring-light),
-                        0 0 0 2rem var(--album-ring), 0 0 0 2.0625rem var(--album-ring-light);
-        }
-        .album-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-            position: relative;
-            z-index: 1;
-        }
+.album-image {
+    position: relative;
+    width: 12.5rem;
+    height: 12.5rem;
+    border-radius: 50%;
+    overflow: visible;
+    background: transparent;
+    box-shadow: 0 0 0 0.25rem var(--album-ring), 0 0 0 0.3125rem var(--album-ring-light),
+                0 0 0 0.5rem var(--album-ring), 0 0 0 0.5625rem var(--album-ring-light),
+                0 0 0 0.75rem var(--album-ring), 0 0 0 0.8125rem var(--album-ring-light),
+                0 0 0 1rem var(--album-ring), 0 0 0 1.0625rem var(--album-ring-light),
+                0 0 0 1.25rem var(--album-ring), 0 0 0 1.3125rem var(--album-ring-light),
+                0 0 0 1.5rem var(--album-ring), 0 0 0 1.5625rem var(--album-ring-light),
+                0 0 0 1.75rem var(--album-ring), 0 0 0 1.8125rem var(--album-ring-light),
+                0 0 0 2rem var(--album-ring), 0 0 0 2.0625rem var(--album-ring-light),
+                0 0 0 2.25rem var(--album-ring), 0 0 0 2.3125rem var(--album-ring-light),
+                0 0 0 2.5rem var(--album-ring), 0 0 0 2.5625rem var(--album-ring-light),
+                0 0 0 2.8125rem var(--album-ring), 0 0 0 2.875rem var(--album-ring-light),
+                0 0 0 2.90625rem var(--album-ring);
+}
+.album-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    position: relative;
+    z-index: 1;
+}
         .player-control-wrapper {
-            position: relative;
-            height: 3.5rem;
-            margin-top: 0.25rem;
+              position: relative;
+    height: 3.75rem;
+    margin-top: 1.25rem !important;
         }
         .progress-bar {
             position: absolute;
